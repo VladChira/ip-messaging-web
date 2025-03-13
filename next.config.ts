@@ -5,7 +5,8 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = {
-  basePath: '/messaging'
+  basePath: '/messaging',
+  trailingSlash: true
 }
 
 export default nextConfig;
