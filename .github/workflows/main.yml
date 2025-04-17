@@ -23,7 +23,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ~/nextjs-deploy
+            cd ~/chatapp-web
 
             git remote set-url origin https://${{ secrets.PAT }}@github.com/VladChira/ip-messaging-web
 
