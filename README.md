@@ -27,7 +27,7 @@ Create a new branch using ``git branch <branch name>`` and switch to it with ``g
 
 
 ### Running the app
-Simply run ``npm run dev`` to launch the app and access it via ``http://localhost:3000/messaging``. If it's the first time running, it will also download the necessary packages.
+If it's your first time running the app, install the necessary npm packages with ``npm install``. To launch the app, simply run ``npm run dev`` and access it via ``http://localhost:3000/messaging``.
 
 Warning: The app runs under a subpath ``/messaging`` in order to allow the upstream nginx on the server to correctly redirect traffic. If you try to access pages without the ``/messaging`` subpath, you will get a ``404 Not found`` error. Ask Vlad if you want more information.
 
