@@ -3,7 +3,6 @@ import {
   CircleDotDashed,
   MessageCircleMore,
   Settings,
-  Sun,
   Users,
 } from "lucide-react";
 
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import ThemeToggler from "./ThemeToggler";
 
 const AppSidebar = () => {
   return (
@@ -31,7 +31,7 @@ const AppSidebar = () => {
               <SidebarMenuItem key="chats">
                 <SidebarMenuButton asChild>
                   <Link href="/">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-sm bg-sidebar-primary text-sidebar-primary-foreground">
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-sm">
                       <MessageCircleMore
                         className="size-6"
                         style={{ transform: "scaleX(-1)" }}
@@ -78,11 +78,7 @@ const AppSidebar = () => {
               </SidebarMenuItem>
               <SidebarMenuItem key="theme">
                 <SidebarMenuButton asChild>
-                  <Link href="/">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                      <Sun className="size-6" />
-                    </div>
-                  </Link>
+                  <ThemeToggler />
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem key="settings">
