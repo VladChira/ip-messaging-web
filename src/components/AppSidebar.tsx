@@ -1,6 +1,6 @@
 import {
-  ArchiveIcon,
   CircleDotDashed,
+  LogOut,
   MessageCircleMore,
   Settings,
   Users,
@@ -42,7 +42,7 @@ const AppSidebar = () => {
               </SidebarMenuItem>
               <SidebarMenuItem key="status">
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/status">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                       <CircleDotDashed className="size-6" />
                     </div>
@@ -71,7 +71,7 @@ const AppSidebar = () => {
                 <SidebarMenuButton asChild>
                   <Link href="/">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                      <ArchiveIcon className="size-6" />
+                      <LogOut className="size-6" />
                     </div>
                   </Link>
                 </SidebarMenuButton>
@@ -83,7 +83,7 @@ const AppSidebar = () => {
               </SidebarMenuItem>
               <SidebarMenuItem key="settings">
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/settings">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                       <Settings className="size-6" />
                     </div>

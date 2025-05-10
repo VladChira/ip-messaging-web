@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CheckCheck } from "lucide-react";
 
 export function ChatListItem() {
   return (
@@ -10,16 +11,20 @@ export function ChatListItem() {
       </Avatar>
 
       {/* Chat Info */}
-      <div className="flex-1">
+      <div className="flex-1 w-0">
         <div className="flex justify-between">
           <p className="font-semibold truncate">Donald Trump</p>
           <p className="text-xs text-muted-foreground whitespace-nowrap">
             2:14 PM
           </p>
         </div>
-          <p className="text-sm text-muted-foreground">
-            Had denoting properly joint collab...
-          </p>
+        <p className="inline-flex items-center gap-1 text-sm text-muted-foreground truncate w-full">
+          <CheckCheck className="size-4 shrink-0" />
+          <span className="truncate">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce id nunc leo. Donec dolor mi, mattis id sagittis eu, tristique sed lectus. Sed cursus augue eu turpis facilisis facilisis. Donec dignissim felis at eros accumsan, quis suscipit nunc pretium. Curabitur suscipit rhoncus neque a porta. Integer id diam eget quam euismod hendrerit.
+          </span>
+        </p>
+
       </div>
 
       {/* Unread Badge */}

@@ -9,7 +9,7 @@ import { CirclePlus } from "lucide-react";
 export default function Home() {
   return (
     <div className="flex h-full w-full p-6">
-      <div className="flex flex-col min-w-[240px] max-w-[360px] w-full space-y-4">
+      <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chats</h1>
           <Button size="sm" variant="outline">
