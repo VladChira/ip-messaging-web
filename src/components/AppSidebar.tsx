@@ -51,7 +51,7 @@ const AppSidebar = () => {
               </SidebarMenuItem>
               <SidebarMenuItem key="friends">
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Link href="/friends">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                       <Users className="size-6" />
                     </div>
