@@ -1,10 +1,9 @@
 import { ChatListItem } from "@/components/ChatListItem";
 import { CurrentChatPanel } from "@/components/CurrentChat";
-import { Button } from "@/components/ui/button";
+import { NewChatDialog } from "@/components/NewChatDialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { CirclePlus } from "lucide-react";
 
 export default function Home() {
   return (
@@ -12,10 +11,7 @@ export default function Home() {
       <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chats</h1>
-          <Button size="sm" variant="outline">
-            <CirclePlus className="mr-2 h-4 w-4" />
-            New
-          </Button>
+            <NewChatDialog />
         </div>
 
         <Input placeholder="Search chats..."></Input>
