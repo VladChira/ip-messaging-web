@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { getInitials } from "@/lib/constants";
 
 interface FriendListItemProps {
     name: string;
@@ -12,11 +13,7 @@ export function FriendListItem({
     username,
     avatarUrl,
 }: FriendListItemProps) {
-    const initials = name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase();
+    const initials = getInitials(name);
 
     return (
         <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">

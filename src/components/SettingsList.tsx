@@ -1,6 +1,7 @@
 import { CircleHelp, KeyRound, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
+import Link from "next/link";
 
 const SettingsList = () => {
     return (
@@ -24,18 +25,24 @@ const SettingsList = () => {
 
                 <Separator className="my-3" />
 
-                <div className="rounded-md hover:bg-muted cursor-pointer">
-                    <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
-                        <KeyRound className="size-7" strokeWidth={1.6} />
 
-                        <div className="flex-1 overflow-hidden">
-                            <div className="flex justify-between items-center">
-                                <p className="font-semibold truncate text-lg">Account</p>
+                <div className="rounded-md hover:bg-muted cursor-pointer">
+                    <Link href="/settings/account">
+                        <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
+                            <KeyRound className="size-7" strokeWidth={1.6} />
+
+                            <div className="flex-1 overflow-hidden">
+                                <div className="flex justify-between items-center">
+
+                                    <p className="font-semibold truncate text-lg">Account</p>
+
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">Account info, delete account</p>
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">Account info, delete account</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
+
                 <Separator />
 
 
@@ -56,7 +63,7 @@ const SettingsList = () => {
 
                 <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
                     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
-                        <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f"/>
+                        <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f" />
 
                         <div className="flex-1 overflow-hidden">
                             <div className="flex justify-between items-center">

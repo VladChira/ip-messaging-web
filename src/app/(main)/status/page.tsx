@@ -1,8 +1,6 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { CirclePlus } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { StatusListItem } from "@/components/StatusListItem";
+import { StatusList } from "@/components/StatusList";
 
 export default function StatusPage() {
     return (
@@ -17,27 +15,12 @@ export default function StatusPage() {
                 </div>
 
                 {/* Scrollable Chat List */}
-                <ScrollArea className="flex-1 rounded-md border p-2">
-                    <div className="space-y-2 pt-1">
-                        <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
-                            <StatusListItem name="Vlad Chira" username="vchira" avatarUrl="/vc.png" timestamp="14:15" status="I am feeling tired 🫨" />
-                        </div>
-                        <Separator className="my-3" />
-                        <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
-                            <StatusListItem name="Victor Moisa" username="vektor" avatarUrl="/vc.png" timestamp="10:11" status="What a wonderful week this has been 🤪" />
-                        </div>
-                        <Separator />
-                        <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
-                            <StatusListItem name="Andrei Ionita" username="aionita" avatarUrl="/vc.png" timestamp="9:01" status="I love nextjs" />
-                        </div>
-                        <Separator />
-                    </div>
-                </ScrollArea>
+                <StatusList />
             </div>
             {/* Right: Placeholder */}
             <div className="flex-1 flex items-center justify-center flex-col text-muted-foreground">
                 <CirclePlus className="h-15 w-15 mb-2" />
-                <p className="text-center">Share what&apos;s going on by creating a status update!</p>
+                <p className="text-center">Share what&apos;s going on by creating a status update for your friends to see!</p>
             </div>
         </div>
     );
