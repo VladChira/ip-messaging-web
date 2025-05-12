@@ -15,6 +15,7 @@ export function StatusList() {
         "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
           loggedInUserID.toString()
       );
+      console.log(response);
 
       const data = await response.json();
       setUsers(data.friends);

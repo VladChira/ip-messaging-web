@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react"
 
-import { RegisterForm } from "@/components/RegisterForm"
+import { RegisterForm } from "@/components/auth/RegisterForm"
 import { appName } from "@/lib/constants"
 
 export default function RegisterPage() {

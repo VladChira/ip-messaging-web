@@ -2,14 +2,14 @@
 
 import { CircleX } from "lucide-react";
 import { redirect } from "next/navigation";
-import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 
 export function DeleteAccountDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="ghost" className="w-full text-md h-12">
+                <Button variant="outline" className="w-full text-md h-12">
                     <CircleX className="size-5" />
                     Delete my account
                 </Button>

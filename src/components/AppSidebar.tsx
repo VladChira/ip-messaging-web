@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import ThemeToggler from "./ThemeToggler";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { Button } from "./ui/button";
 
 const AppSidebar = () => {
   const pathname = usePathname();
@@ -103,11 +104,11 @@ const AppSidebar = () => {
             <SidebarMenu className="flex flex-col space-y-4 py-4 items-center">
               <SidebarMenuItem key="logout">
                 <SidebarMenuButton asChild>
-                  <Link href="/">
+                  <Button variant="ghost">
                     <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
                       <LogOut className="size-6" />
                     </div>
-                  </Link>
+                  </Button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem key="theme">
