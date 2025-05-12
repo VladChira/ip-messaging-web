@@ -1,4 +1,8 @@
-import { DeleteAccountDialog } from "@/components/DeleteAccountDialog";
+import AccountDetails from "@/components/settings/AccountDetails";
+import { ChangeNameDialog } from "@/components/settings/ChangeNameDialog";
+import { ChangePasswordDialog } from "@/components/settings/ChangePasswordDialog";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { Separator } from "@/components/ui/separator";
 import { Settings } from "lucide-react";
 
 export default function SettingsPage() {
@@ -9,8 +13,18 @@ export default function SettingsPage() {
                     <h1 className="text-2xl font-bold">Account</h1>
                 </div>
 
-                <div className="flex-1 rounded-md border p-2">
+                <div className="flex-1 rounded-md border p-2 space-y-2">
+
+                    <AccountDetails showDetails={true}/>
+
+                    <Separator className="my-3" />
+
+                    <ChangeNameDialog />
+
+                    <ChangePasswordDialog />
+
                     <DeleteAccountDialog />
+
                 </div>
 
             </div>

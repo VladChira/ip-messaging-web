@@ -2,6 +2,7 @@ import { CircleHelp, KeyRound, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
+import { Button } from "./ui/button";
 
 const SettingsList = () => {
     return (
@@ -63,7 +64,9 @@ const SettingsList = () => {
 
                 <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
                     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
-                        <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f" />
+                        <Button variant="ghost" >
+                            <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f" />
+                        </Button>
 
                         <div className="flex-1 overflow-hidden">
                             <div className="flex justify-between items-center">
