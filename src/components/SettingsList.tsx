@@ -47,16 +47,19 @@ const SettingsList = () => {
 
 
                 <div className="rounded-md hover:bg-muted cursor-pointer">
-                    <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
-                        <CircleHelp className="size-7" strokeWidth={1.6} />
+                    {/* Added Link component around the Help section */}
+                    <Link href="/settings/help">
+                        <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
+                            <CircleHelp className="size-7" strokeWidth={1.6} />
 
-                        <div className="flex-1 overflow-hidden">
-                            <div className="flex justify-between items-center">
-                                <p className="font-semibold truncate text-lg">Help</p>
+                            <div className="flex-1 overflow-hidden">
+                                <div className="flex justify-between items-center">
+                                    <p className="font-semibold truncate text-lg">Help</p>
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">Help center, contact devs, privacy policy</p>
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">Help center, contact devs, privacy policy</p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 <Separator />
