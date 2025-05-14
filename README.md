@@ -34,6 +34,6 @@ Warning: The app runs under a subpath ``/messaging`` in order to allow the upstr
 
 
 ## Deploying to production
-To deploy your code to production, submit a pull request. After it's merged to the main branch, a Github workflow will automatically deploy the app to the server. You can then access it by going to https://c9server.go.ro/messaging.
+To deploy your code to production, submit a pull request. After it's merged to the main branch, a Github workflow will automatically deploy the app to the server. You can then access it by going to <redacted>/messaging
 
 You may review the workflow that deploys this app in the ``.github/workflows`` folder and/or ask Vlad for more info. 
