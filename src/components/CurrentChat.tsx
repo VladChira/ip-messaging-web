@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Smile, Paperclip, Phone, Video, Send } from "lucide-react";
+import { Smile, Paperclip, Send } from "lucide-react";
 import { ChatMessageList } from "./ui/chat/chat-message-list";
 import {
   ChatBubble,
@@ -26,16 +26,6 @@ export function CurrentChatPanel() {
             <p className="font-semibold">Donald Trump</p>
             <span className="text-sm text-muted-foreground">Online</span>
           </div>
-        </div>
-
-        {/* Right side: Action buttons */}
-        <div className="flex items-center gap-2">
-          <Button size="icon" variant="outline">
-            <Phone className="h-5 w-5" />
-          </Button>
-          <Button size="icon" variant="outline">
-            <Video className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 

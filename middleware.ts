@@ -1,4 +1,4 @@
-// middleware.ts (update your existing middleware.ts with this code)
+// middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -6,24 +6,26 @@ export function middleware(request: NextRequest) {
   // Get the pathname of the request
   const path = request.nextUrl.pathname;
   
-  // Define public paths that don't require authentication
-  const isPublicPath = 
-    path === '/login' || 
-    path === '/register' || 
-    path.startsWith('/login/') || 
-    path.startsWith('/register/');
+  // Check for login and register paths, accounting for the /messenger prefix
+  const isLoginPath = path.includes('/login');
+  const isRegisterPath = path.includes('/register');
+  const isPublicPath = isLoginPath || isRegisterPath;
   
   // Check if user is authenticated (has JWT token in cookies)
   const token = request.cookies.get('token')?.value;
   
   // If trying to access a protected route without token, redirect to login
   if (!isPublicPath && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Determine the login path based on whether we're in the /messenger route
+    const loginPath = path.startsWith('/messenger') ? '/messenger/login' : '/login';
+    return NextResponse.redirect(new URL(loginPath, request.url));
   }
   
   // If already authenticated and trying to access login/register, redirect to home
   if (isPublicPath && token) {
-    return NextResponse.redirect(new URL('/', request.url));
+    // Determine the home path based on whether we're in the /messenger route
+    const homePath = path.startsWith('/messenger') ? '/messenger' : '/';
+    return NextResponse.redirect(new URL(homePath, request.url));
   }
   
   // Continue with the request

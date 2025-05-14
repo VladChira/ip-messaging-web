@@ -22,12 +22,41 @@ import {
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import ThemeToggler from "./ThemeToggler";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
+import { auth, getCurrentUser } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { UserData } from "@/lib/api";
 
 const AppSidebar = () => {
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // Load the current user
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    auth.logout();
+    router.push("/login");
+  };
+
+  // Get user initials for avatar fallback
+  const getInitials = (name: string): string => {
+    if (!name) return "?";
+    
+    const nameArray = name.split(" ");
+    if (nameArray.length >= 2) {
+      return `${nameArray[0][0]}${nameArray[1][0]}`.toUpperCase();
+    }
+    
+    return name.slice(0, 2).toUpperCase();
+  };
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -104,9 +133,10 @@ const AppSidebar = () => {
             <SidebarMenu className="flex flex-col space-y-4 py-4 items-center">
               <SidebarMenuItem key="logout">
                 <SidebarMenuButton asChild>
-                  <Button variant="ghost">
-                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
-                      <LogOut className="size-6" />
+                  {/* Updated logout button with onClick handler and red color */}
+                  <Button variant="ghost" onClick={handleLogout}>
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg transition-colors hover:bg-muted/20">
+                      <LogOut className="size-6" color="#cc2a1f" />
                     </div>
                   </Button>
                 </SidebarMenuButton>
@@ -137,10 +167,12 @@ const AppSidebar = () => {
                   <Link href="/settings/account">
                     <Avatar className="h-11 w-11 rounded-lg">
                       <AvatarImage
-                        src="https://github.com/shadcn.png"
-                        alt="Avatar Logo"
+                        src="/test" 
+                        alt={user?.name || "User"}
                       />
-                      <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                      <AvatarFallback className="rounded-lg">
+                        {user ? getInitials(user.name) : "?"}
+                      </AvatarFallback>
                     </Avatar>
                   </Link>
                 </SidebarMenuButton>

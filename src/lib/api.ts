@@ -1,4 +1,4 @@
-// src/lib/api.ts
+// lib/api.ts
 import Cookies from "js-cookie";
 
 // Define proper types to avoid 'any'
@@ -83,10 +83,10 @@ export const api = {
       
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `Username or password is incorrect!`;
+        errorMessage = errorJson.message || `API error: ${response.status}`;
       } catch {
         // Using empty catch block to avoid unused variable
-        errorMessage = errorText || `Username or password is incorrect!`;
+        errorMessage = errorText || `API error: ${response.status}`;
       }
       
       throw new Error(errorMessage);
@@ -205,6 +205,25 @@ export const auth = {
     
     // Remove user from localStorage
     localStorage.removeItem("user");
+  },
+  
+  /**
+   * Delete the user's account
+   */
+  deleteAccount: async (): Promise<void> => {
+    try {
+      // Call the API to delete the account
+      await api.delete<{ success: boolean }>('/users/delete-account');
+      
+      // Clear authentication data
+      Cookies.remove("token");
+      localStorage.removeItem("user");
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+      return Promise.reject(error);
+    }
   },
   
   /**
