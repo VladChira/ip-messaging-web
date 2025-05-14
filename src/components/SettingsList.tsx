@@ -1,31 +1,69 @@
+"use client";
+
 import { CircleHelp, KeyRound, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Separator } from "./ui/separator";
 import Link from "next/link";
-import { Button } from "./ui/button";
+// Removed the Button import since it's no longer used
+import { useEffect, useState } from "react";
+import { auth, getCurrentUser, UserData } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const SettingsList = () => {
+    const router = useRouter();
+    const [user, setUser] = useState<UserData | null>(null);
+
+    // Get the current user on component mount
+    useEffect(() => {
+        const currentUser = getCurrentUser();
+        setUser(currentUser);
+        
+        // If no user is found, redirect to login
+        if (!currentUser) {
+            router.push("/login");
+        }
+    }, [router]);
+
+    const handleLogout = () => {
+        // Call the logout function from auth
+        auth.logout();
+        
+        // Redirect to login page
+        router.push("/login");
+    };
+
+    // Get initials for avatar fallback
+    const getInitials = (name: string): string => {
+        if (!name) return "?";
+        
+        const nameArray = name.split(" ");
+        if (nameArray.length >= 2) {
+            return `${nameArray[0][0]}${nameArray[1][0]}`.toUpperCase();
+        }
+        
+        return name.slice(0, 2).toUpperCase();
+    };
+
     return (
         <div className="flex-1 p-2">
             <div className="space-y-2 pt-1">
                 <div className="py-2 rounded-md hover:bg-muted cursor-pointer pb-5">
                     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
                         <Avatar className="h-13 w-13">
-                            <AvatarImage src="/test" alt="vc" />
-                            <AvatarFallback>vc</AvatarFallback>
+                            <AvatarImage src="/test" alt={user?.name || "User"} />
+                            <AvatarFallback>{user ? getInitials(user.name) : "?"}</AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1 overflow-hidden">
                             <div className="flex justify-between items-center">
-                                <p className="font-semibold truncate text-lg">Vlad Chira</p>
+                                <p className="font-semibold truncate text-lg">{user?.name || "Loading..."}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">@vchira</p>
+                            <p className="text-sm text-muted-foreground truncate">@{user?.username || "user"}</p>
                         </div>
                     </div>
                 </div>
 
                 <Separator className="my-3" />
-
 
                 <div className="rounded-md hover:bg-muted cursor-pointer">
                     <Link href="/settings/account">
@@ -34,9 +72,7 @@ const SettingsList = () => {
 
                             <div className="flex-1 overflow-hidden">
                                 <div className="flex justify-between items-center">
-
                                     <p className="font-semibold truncate text-lg">Account</p>
-
                                 </div>
                                 <p className="text-sm text-muted-foreground truncate">Account info, delete account</p>
                             </div>
@@ -46,9 +82,7 @@ const SettingsList = () => {
 
                 <Separator />
 
-
                 <div className="rounded-md hover:bg-muted cursor-pointer">
-                    {/* Added Link component around the Help section */}
                     <Link href="/settings/help">
                         <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
                             <CircleHelp className="size-7" strokeWidth={1.6} />
@@ -65,11 +99,13 @@ const SettingsList = () => {
 
                 <Separator />
 
-                <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
-                    <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
-                        <Button variant="ghost" >
-                            <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f" />
-                        </Button>
+                {/* Logout button row */}
+                <div 
+                    className="py-2 rounded-md hover:bg-muted cursor-pointer"
+                    onClick={handleLogout}
+                >
+                    <div className="flex items-center gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
+                        <LogOut className="size-7" strokeWidth={1.6} color="#cc2a1f" />
 
                         <div className="flex-1 overflow-hidden">
                             <div className="flex justify-between items-center">
