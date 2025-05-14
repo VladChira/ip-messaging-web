@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { auth } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -19,12 +22,35 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Form submission logic will go here later
-    // For now, we'll just redirect to the main app page
-    router.push("/");
+    
+    if (!username.trim() || !password.trim()) {
+      setError("Username and password are required");
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Use the auth.login function from our API library
+      await auth.login(username, password);
+      
+      // Redirect to main app page
+      router.push("/");
+      
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,6 +63,13 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 mb-4">
+              <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-500">{error}</p>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="grid gap-6">
@@ -45,7 +78,9 @@ export function LoginForm({
                   <Input
                     id="username"
                     type="text"
-                    placeholder=""
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    disabled={loading}
                     required
                   />
                 </div>
@@ -59,10 +94,21 @@ export function LoginForm({
                       Forgot your password?
                     </Link>
                   </div>
-                  <Input id="password" type="password" required />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                    required 
+                  />
                 </div>
-                <Button type="submit" className="w-full">
-                  Login
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
                 </Button>
               </div>
               <div className="text-center text-sm">
