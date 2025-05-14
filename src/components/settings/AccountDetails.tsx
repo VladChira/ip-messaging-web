@@ -10,21 +10,63 @@ export type AccountDetailsProps = {
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({ showDetails = false }) => {
     const [user, setUser] = useState<ChatAppUser>();
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchUsers = async () => {
-            const response = await fetch(
-                "https://c9server.go.ro/messaging-api/users"
-            );
+            try {
+                setLoading(true);
+                const response = await fetch(
+                    "https://c9server.go.ro/messaging-api/users"
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`API responded with status: ${response.status}`);
+                }
 
-            const data = await response.json();
-            setUser(data.users[loggedInUserID]);
+                const data = await response.json();
+                setUser(data.users[loggedInUserID]);
+                setError(null);
+            } catch (err) {
+                console.error("Failed to fetch user data:", err);
+                setError("Could not load user information. Please try again later.");
+                // Optionally, you could use a fallback user object here
+                // setUser({ name: "Guest User", username: "guest", ... })
+            } finally {
+                setLoading(false);
+            }
         };
 
         fetchUsers();
     }, []);
 
-    if (!user) return null;
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="py-2 p-2 flex items-center justify-center">
+                <p className="text-sm text-muted-foreground">Loading user information...</p>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error && !user) {
+        return (
+            <div className="py-2 p-2">
+                <p className="text-sm text-red-500">{error}</p>
+            </div>
+        );
+    }
+
+    // If no user data is available after loading completes
+    if (!user) {
+        return (
+            <div className="py-2 p-2">
+                <p className="text-sm text-muted-foreground">User information not available</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-2 pt-1">
