@@ -1,9 +1,7 @@
-// lib/api.ts
+// src/lib/api.ts
 import Cookies from "js-cookie";
 
 // Define proper types to avoid 'any'
-// Removed unused ApiResponse interface
-
 export interface UserData {
   userId: number;
   username: string;
@@ -85,10 +83,10 @@ export const api = {
       
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `User or password is incorrect!`;
+        errorMessage = errorJson.message || `Username or password is incorrect!`;
       } catch {
         // Using empty catch block to avoid unused variable
-        errorMessage = errorText || `User or password is incorrect!`;
+        errorMessage = errorText || `Username or password is incorrect!`;
       }
       
       throw new Error(errorMessage);
@@ -153,6 +151,20 @@ interface LoginResponse {
   user: UserData;
 }
 
+// Register credentials interface
+interface RegisterCredentials {
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Register response interface
+interface RegisterResponse {
+  message: string;
+  user: UserData;
+}
+
 /**
  * Authentication functions
  */
@@ -173,6 +185,14 @@ export const auth = {
     // Store user in localStorage
     localStorage.setItem("user", JSON.stringify(data.user));
     
+    return data;
+  },
+  
+  /**
+   * Register a new user
+   */
+  register: async (userData: RegisterCredentials): Promise<RegisterResponse> => {
+    const data = await api.post<RegisterResponse, RegisterCredentials>("/register", userData);
     return data;
   },
   
