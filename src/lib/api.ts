@@ -1,18 +1,38 @@
 // lib/api.ts
 import Cookies from "js-cookie";
 
+// Define proper types to avoid 'any'
+interface ApiResponse<T> {
+  data?: T;
+  message?: string;
+  token?: string;
+  user?: UserData;
+  [key: string]: unknown;
+}
+
+export interface UserData {
+  userId: number;
+  username: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  createdAt: string;
+  [key: string]: unknown;
+}
+
 // Base URL for all API requests
 const API_BASE_URL = "https://c9server.go.ro/messaging-api";
 
 /**
  * Get the current logged-in user from localStorage
  */
-export function getCurrentUser() {
+export function getCurrentUser(): UserData | null {
   const userStr = localStorage.getItem("user");
   if (!userStr) return null;
   
   try {
-    return JSON.parse(userStr);
+    return JSON.parse(userStr) as UserData;
   } catch (error) {
     console.error("Failed to parse user from localStorage:", error);
     return null;
@@ -22,7 +42,7 @@ export function getCurrentUser() {
 /**
  * Get the JWT token from cookies
  */
-export function getToken() {
+export function getToken(): string | null {
   return Cookies.get("token") || null;
 }
 
@@ -33,7 +53,7 @@ export const api = {
   /**
    * Make a GET request
    */
-  get: async (endpoint: string) => {
+  get: async <T>(endpoint: string): Promise<T> => {
     const token = getToken();
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -47,13 +67,13 @@ export const api = {
       throw new Error(`API error: ${response.status}`);
     }
     
-    return response.json();
+    return response.json() as Promise<T>;
   },
   
   /**
    * Make a POST request
    */
-  post: async (endpoint: string, data: any) => {
+  post: async <T, D>(endpoint: string, data: D): Promise<T> => {
     const token = getToken();
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -71,21 +91,21 @@ export const api = {
       
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `User or password is incorrect!`;
-      } catch (e) {
-        errorMessage = errorText || `User or password is incorrect!`;
+        errorMessage = errorJson.message || `API error: ${response.status}`;
+      } catch (_) { // Using underscore to indicate unused variable
+        errorMessage = errorText || `API error: ${response.status}`;
       }
       
       throw new Error(errorMessage);
     }
     
-    return response.json();
+    return response.json() as Promise<T>;
   },
   
   /**
    * Make a PUT request
    */
-  put: async (endpoint: string, data: any) => {
+  put: async <T, D>(endpoint: string, data: D): Promise<T> => {
     const token = getToken();
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -101,13 +121,13 @@ export const api = {
       throw new Error(`API error: ${response.status}`);
     }
     
-    return response.json();
+    return response.json() as Promise<T>;
   },
   
   /**
    * Make a DELETE request
    */
-  delete: async (endpoint: string) => {
+  delete: async <T>(endpoint: string): Promise<T> => {
     const token = getToken();
     
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -122,9 +142,21 @@ export const api = {
       throw new Error(`API error: ${response.status}`);
     }
     
-    return response.json();
+    return response.json() as Promise<T>;
   },
 };
+
+// Login credentials interface
+interface LoginCredentials {
+  username: string;
+  password: string;
+}
+
+// Login response interface
+interface LoginResponse {
+  token: string;
+  user: UserData;
+}
 
 /**
  * Authentication functions
@@ -133,8 +165,8 @@ export const auth = {
   /**
    * Login user
    */
-  login: async (username: string, password: string) => {
-    const data = await api.post("/login", { username, password });
+  login: async (username: string, password: string): Promise<LoginResponse> => {
+    const data = await api.post<LoginResponse, LoginCredentials>("/login", { username, password });
     
     // Store the JWT token in HTTP cookies
     Cookies.set("token", data.token, { 
