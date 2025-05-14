@@ -2,13 +2,7 @@
 import Cookies from "js-cookie";
 
 // Define proper types to avoid 'any'
-interface ApiResponse<T> {
-  data?: T;
-  message?: string;
-  token?: string;
-  user?: UserData;
-  [key: string]: unknown;
-}
+// Removed unused ApiResponse interface
 
 export interface UserData {
   userId: number;
@@ -91,9 +85,10 @@ export const api = {
       
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `API error: ${response.status}`;
-      } catch (_) { // Using underscore to indicate unused variable
-        errorMessage = errorText || `API error: ${response.status}`;
+        errorMessage = errorJson.message || `User or password is incorrect!`;
+      } catch {
+        // Using empty catch block to avoid unused variable
+        errorMessage = errorText || `User or password is incorrect!`;
       }
       
       throw new Error(errorMessage);
