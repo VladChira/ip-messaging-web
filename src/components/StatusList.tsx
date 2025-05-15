@@ -4,27 +4,45 @@ import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { StatusListItem } from "./StatusListItem";
-import { ChatAppUser, loggedInUserID } from "@/lib/constants";
+import { ChatAppUser } from "@/lib/constants";
 import { AlertCircle } from "lucide-react";
+import { getCurrentUser, UserData } from "@/lib/api";
+
+import Cookies from 'js-cookie';
 
 export function StatusList() {
   const [users, setUsers] = useState<ChatAppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // Load the current user
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!user?.userId) return;
       try {
         setLoading(true);
         const response = await fetch(
           "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-            loggedInUserID.toString()
+            user?.userId.toString(),
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          }
         );
-        
+
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         setUsers(data.friends || []);
         setError(null);
@@ -38,12 +56,14 @@ export function StatusList() {
     };
 
     fetchUsers();
-  }, []);
+  }, [user?.userId]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-6 h-40">
-        <p className="text-sm text-muted-foreground">Loading status updates...</p>
+        <p className="text-sm text-muted-foreground">
+          Loading status updates...
+        </p>
       </div>
     );
   }
@@ -53,7 +73,9 @@ export function StatusList() {
       <div className="flex flex-col items-center justify-center p-6 h-40 text-center gap-2">
         <AlertCircle className="h-6 w-6 text-red-500" />
         <p className="text-sm text-red-500">{error}</p>
-        <p className="text-xs text-muted-foreground">Check your connection and try again</p>
+        <p className="text-xs text-muted-foreground">
+          Check your connection and try again
+        </p>
       </div>
     );
   }
@@ -61,7 +83,9 @@ export function StatusList() {
   if (users.length === 0) {
     return (
       <div className="flex items-center justify-center p-6 h-40">
-        <p className="text-sm text-muted-foreground">No status updates to show</p>
+        <p className="text-sm text-muted-foreground">
+          No status updates to show
+        </p>
       </div>
     );
   }

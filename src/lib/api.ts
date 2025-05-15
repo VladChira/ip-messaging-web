@@ -178,8 +178,10 @@ export const auth = {
     // Store the JWT token in HTTP cookies
     Cookies.set("token", data.token, { 
       expires: 7, // 7 days
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict" 
+      secure: false,
+      sameSite: "Lax"
+      // secure: process.env.NODE_ENV === "production",
+      // sameSite: "strict" 
     });
     
     // Store user in localStorage
