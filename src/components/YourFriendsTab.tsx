@@ -1,13 +1,13 @@
 "use client";
 
-import { FriendListItem } from "../FriendItem";
 import { useEffect, useState } from "react";
 import { ChatAppUser } from "@/lib/constants";
-import { Separator } from "./separator";
 import { HeartCrack, AlertCircle } from "lucide-react";
 import { getCurrentUser, UserData } from "@/lib/api";
 
 import Cookies from 'js-cookie';
+import { FriendListItem } from "./FriendItem";
+import { Separator } from "./ui/separator";
 
 const YourFriendsTab = () => {
   const [friends, setFriends] = useState<ChatAppUser[]>([]);

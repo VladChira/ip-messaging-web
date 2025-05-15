@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { StatusListItem } from "./StatusListItem";
-import { ChatAppUser } from "@/lib/constants";
+import { ChatAppUser, getInitials } from "@/lib/constants";
 import { AlertCircle } from "lucide-react";
 import { getCurrentUser, UserData } from "@/lib/api";
 
 import Cookies from 'js-cookie';
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export function StatusList() {
   const [users, setUsers] = useState<ChatAppUser[]>([]);
@@ -30,7 +31,7 @@ export function StatusList() {
         setLoading(true);
         const response = await fetch(
           "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-            user?.userId.toString(),
+          user?.userId.toString(),
           {
             method: "GET",
             headers: {
@@ -80,37 +81,60 @@ export function StatusList() {
     );
   }
 
-  if (users.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-6 h-40">
-        <p className="text-sm text-muted-foreground">
-          No status updates to show
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <ScrollArea className="flex-1 rounded-md border p-2">
-      <div className="space-y-2 pt-1">
-        {users.map((user, index) => (
-          <div key={user.userId}>
-            <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
-              <StatusListItem
-                name={user.name}
-                username={user.username}
-                avatarUrl="/vc.png"
-                timestamp={new Date(user.createdAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-                status={user.status}
-              />
+    <div className="rounded-md border h-full">
+      <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
+        <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer px-2 pt-4">
+          <Avatar className="h-13 w-13">
+            <AvatarImage alt={user?.name || "User"} />
+            <AvatarFallback>{user ? getInitials(user.name) : "?"}</AvatarFallback>
+          </Avatar>
+
+          <div className="flex-1 overflow-hidden">
+            <div className="flex justify-between items-center">
+              <p className="font-semibold truncate text-lg">{user?.name || "Loading..."}</p>
             </div>
-            {index !== users.length - 1 && <Separator className="my-3" />}
+            <p className="text-sm text-muted-foreground truncate">@{user?.username || "user"}</p>
           </div>
-        ))}
+        </div>
+        <div className="px-4 py-2">
+          <h2 className="text-sm font-medium text-muted-foreground mb-1">My current status</h2>
+          <p className="text-base text-foreground">{user?.status || "No status set."}</p>
+        </div>
       </div>
-    </ScrollArea>
+      <Separator className="mb-4" />
+      {users.length > 0 && (
+        <>
+
+          <div className="px-4 pb-2">
+            <h2 className="text-sm font-medium text-muted-foreground">
+              Updates from your friends
+            </h2>
+          </div>
+          <ScrollArea className="flex-1 px-2">
+            <div className="space-y-2">
+              {users.map((user, index) => (
+                <div key={user.userId}>
+                  <div className="py-2 rounded-md hover:bg-muted cursor-pointer">
+                    <StatusListItem
+                      name={user.name}
+                      username={user.username}
+                      avatarUrl="/vc.png"
+                      timestamp={new Date(user.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      status={user.status}
+                    />
+                  </div>
+                  {index !== users.length - 1 && <Separator className="my-3" />}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </>
+      )}
+
+    </div>
   );
 }
