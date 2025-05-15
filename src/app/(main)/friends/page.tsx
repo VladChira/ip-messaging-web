@@ -1,41 +1,54 @@
+// /app/(main)/friends/page.tsx
+"use client";
+
+import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { User } from "lucide-react";
-import { AddFriendListItem } from "@/components/AddFriendItem";
-import { Separator } from "@/components/ui/separator";
-import YourFriendsTab from "@/components/YourFriendsTab";
+//import { AddFriendListItem } from "@/components/AddFriendItem";
+//import { Separator } from "@/components/ui/separator";
+import YourFriendsTab from "@/components/ui/YourFriendsTab";
+import SearchUsersTab from "@/components/SearchUsersTab";
+import FriendRequestsTab from "@/components/FriendRequestsTab";
 
 export default function FriendsPage() {
+    const [activeTab, setActiveTab] = useState("friends");
+
     return (
         <>
             <h1 className="text-2xl font-bold px-6 pt-6">Friends</h1>
             <div className="flex h-full w-full px-6 gap-6">
                 {/* Left: Tabs */}
                 <div className="w-full max-w-xl flex flex-col">
-                    <Tabs defaultValue="friends" className="flex flex-col flex-1">
+                    <Tabs 
+                        value={activeTab} 
+                        onValueChange={setActiveTab} 
+                        className="flex flex-col flex-1"
+                    >
                         <TabsList className="w-full justify-start">
                             <TabsTrigger value="friends">Your Friends</TabsTrigger>
                             <TabsTrigger value="add">Add Friends</TabsTrigger>
+                            <TabsTrigger value="requests">Friend Requests</TabsTrigger>
                         </TabsList>
 
                         {/* Your Friends Tab */}
                         <TabsContent value="friends" className="flex-1">
                             <ScrollArea className="h-full border rounded-md p-2">
                                 <YourFriendsTab />
-
                             </ScrollArea>
                         </TabsContent>
 
                         {/* Add Friends Tab */}
                         <TabsContent value="add" className="flex-1 space-y-4">
-                            <Input placeholder="Search for users..." />
                             <ScrollArea className="h-full border rounded-md p-2">
-                                <AddFriendListItem name="Donald Trump" username="therealdjt" avatarUrl="/djt.png" requestSent={false} />
-                                <Separator className="my-2" />
-                                <AddFriendListItem name="Nicusor Dan" username="nicu_sordan" avatarUrl="/nd11.png" requestSent={true} />
-                                <Separator className="my-2" />
-                                <AddFriendListItem name="George Simion" username="cg_fanboy" avatarUrl="/gs.png" requestSent={false} />
+                                <SearchUsersTab />
+                            </ScrollArea>
+                        </TabsContent>
+                        
+                        {/* Friend Requests Tab */}
+                        <TabsContent value="requests" className="flex-1 space-y-4">
+                            <ScrollArea className="h-full border rounded-md p-2">
+                                <FriendRequestsTab />
                             </ScrollArea>
                         </TabsContent>
                     </Tabs>

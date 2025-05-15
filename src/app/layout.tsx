@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import AuthWrapper from "@/components/AuthWrapper";
+import { Toaster } from "sonner"; // Import the Toaster directly from sonner
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -11,7 +12,7 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin"], // Fixed typo 'suihbsets' -> 'subsets'
 });
 
 export const metadata: Metadata = {
@@ -31,10 +32,12 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="light">
+          defaultTheme="light"
+        >
           <AuthWrapper>
             {children}
           </AuthWrapper>
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>

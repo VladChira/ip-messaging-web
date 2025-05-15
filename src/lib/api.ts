@@ -235,3 +235,71 @@ export const auth = {
     return !!getToken() && !!getCurrentUser();
   },
 };
+
+// Friend Request related interfaces
+export interface FriendRequestData {
+  requestId: number;
+  senderId: number;
+  receiverId: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface UserSearchResult {
+  userId: number;
+  name: string;
+  username: string;
+  requestSent: boolean;
+}
+
+export interface FriendRequestsResponse {
+  friendRequests: {
+    requestId: number;
+    userId: number;
+    name: string;
+    username: string;
+    createdAt: string;
+  }[];
+}
+
+// Friend request functions
+export const friends = {
+  /**
+   * Search for users to add as friends
+   */
+  searchUsers: async (query: string): Promise<{ users: UserSearchResult[] }> => {
+    return api.get(`/search-users?query=${encodeURIComponent(query)}`);
+  },
+
+  /**
+   * Send a friend request to another user
+   */
+  sendFriendRequest: async (recipientId: number): Promise<{ message: string }> => {
+    return api.post('/send-friend-request', { recipient_id: recipientId });
+  },
+
+  /**
+   * Get pending friend requests for the current user
+   */
+  getFriendRequests: async (): Promise<FriendRequestsResponse> => {
+    return api.get('/get-friend-requests');
+  },
+
+  /**
+   * Accept or reject a friend request
+   */
+  respondToFriendRequest: async (requestId: number, action: 'accept' | 'reject'): Promise<{ message: string }> => {
+    return api.post('/respond-to-friend-request', { request_id: requestId, action });
+  },
+
+  /**
+   * Get all friends of the current user
+   */
+  getFriends: async (): Promise<{ friends: UserData[] }> => {
+    const currentUser = getCurrentUser();
+    if (!currentUser?.userId) {
+      throw new Error("User not authenticated");
+    }
+    return api.get(`/get-friends-by-user-id/${currentUser.userId}`);
+  }
+};
