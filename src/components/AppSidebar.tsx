@@ -167,7 +167,6 @@ const AppSidebar = () => {
                   <Link href="/settings/account">
                     <Avatar className="h-11 w-11 rounded-lg">
                       <AvatarImage
-                        src="/test" 
                         alt={user?.name || "User"}
                       />
                       <AvatarFallback className="rounded-lg">

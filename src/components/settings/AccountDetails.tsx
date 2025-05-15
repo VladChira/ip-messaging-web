@@ -39,7 +39,7 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ showDetails = false }) 
             <div className="py-2 rounded-md hover:bg-muted cursor-pointer pb-5">
                 <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
                     <Avatar className="h-13 w-13">
-                        <AvatarImage src={'/test'} alt={user.name} />
+                        <AvatarImage alt={user.name} />
                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                     </Avatar>
 
@@ -53,7 +53,6 @@ const AccountDetails: React.FC<AccountDetailsProps> = ({ showDetails = false }) 
                             <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                                 <p><strong>Email:</strong> {user.email}</p>
                                 <p><strong>Role:</strong> {user.role}</p>
-                                <p><strong>Status:</strong> {user.status}</p>
                                 <p><strong>Joined:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
                             </div>
                         )}

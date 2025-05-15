@@ -35,48 +35,48 @@ export function RegisterForm({
   const validateForm = (): boolean => {
     // Reset error
     setError(null);
-    
+
     // Check if all fields are filled
     if (!username.trim() || !name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError("All fields are required");
       return false;
     }
-    
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setError("Please enter a valid email address");
       return false;
     }
-    
+
     // Validate password length
     if (password.length < 6) {
       setError("Password must be at least 6 characters long!");
       return false;
     }
-    
+
     // Check if passwords match
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return false;
     }
-    
+
     return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate the form
     if (!validateForm()) {
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
       setSuccess(null);
-      
+
       // Call the register function from our API library
       await auth.register({
         username,
@@ -84,22 +84,22 @@ export function RegisterForm({
         email,
         password
       });
-      
+
       // Show success message
       setSuccess("Registration successful! Redirecting to login...");
-      
+
       // Clear form
       setUsername("");
       setName("");
       setEmail("");
       setPassword("");
       setConfirmPassword("");
-      
+
       // Redirect to login page after a short delay
       setTimeout(() => {
         router.push("/login");
-      }, 2000);
-      
+      }, 1500);
+
     } catch (err) {
       console.error("Registration error:", err);
       setError(err instanceof Error ? err.message : "Registration failed. Please try again.");
@@ -124,14 +124,14 @@ export function RegisterForm({
               <p className="text-sm text-red-500">{error}</p>
             </div>
           )}
-          
+
           {success && (
             <div className="bg-green-50 p-3 rounded-md flex items-start gap-2 mb-4">
               <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-green-500">{success}</p>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
               <div className="grid gap-6">
@@ -169,13 +169,13 @@ export function RegisterForm({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input 
-                    id="password" 
+                  <Input
+                    id="password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading} 
-                    required 
+                    disabled={loading}
+                    required
                   />
                   <p className="text-xs text-muted-foreground">
                     Password must be at least 6 characters long
@@ -183,17 +183,17 @@ export function RegisterForm({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="confirm-password">Repeat Password</Label>
-                  <Input 
-                    id="confirm-password" 
+                  <Input
+                    id="confirm-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={loading} 
-                    required 
+                    disabled={loading}
+                    required
                   />
                 </div>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={loading}
                 >

@@ -1,25 +1,92 @@
 "use client"
 
-import { UserPen } from "lucide-react";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { useEffect, useState } from "react";
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, CheckCircle, UserPen } from "lucide-react";
+import { UserData, auth, getCurrentUser } from "@/lib/api";
+
+import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
 
 export function ChangeNameDialog() {
+    const router = useRouter();
+    const [name, setName] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState<UserData | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    // Load the current user
+    useEffect(() => {
+        const currentUser = getCurrentUser();
+        setUser(currentUser);
+    }, []);
+
+    const handleSubmit = async () => {
+        if (!user?.userId) return;
+        setLoading(true);
+        try {
+            setSuccess(null);
+            const response = await fetch("https://c9server.go.ro/messaging-api/change-name/" +
+                user?.userId.toString(), {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${Cookies.get("token")}`,
+                },
+                body: JSON.stringify({ "newName": name }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update name.");
+            }
+
+            setSuccess("Name change successful! Redirecting to login...");
+
+            auth.logout();
+
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                router.push("/login");
+            }, 1500);
+
+        } catch (err) {
+            console.error("Name change error:", err);
+            setError(err instanceof Error ? err.message : "Name change failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <Button variant="outline" className="w-full text-md h-12">
                     <UserPen className="size-5" />
-                    Edit name and username
+                    Edit name
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Edit name and username</DialogTitle>
+                    <DialogTitle>Edit name</DialogTitle>
                     <DialogDescription>
-                        Change your name and username here.  Click save when you&apos;re done.
+                        Changes will apply immediately. You will need to sign in again.
+                        {error && (
+                            <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 mt-3">
+                                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                                <p className="text-sm text-red-500">{error}</p>
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="bg-green-50 p-3 rounded-md flex items-start gap-2 mt-4">
+                                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                                <p className="text-sm text-green-500">{success}</p>
+                            </div>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -27,17 +94,18 @@ export function ChangeNameDialog() {
                         <Label htmlFor="name" className="text-right">
                             New name
                         </Label>
-                        <Input id="name" className="col-span-3" />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="username">
-                            New username
-                        </Label>
-                        <Input id="username" className="col-span-3" />
+                        <Input
+                            id="name"
+                            className="col-span-3"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="submit">Save changes</Button>
+                    <Button type="button" onClick={handleSubmit} disabled={loading}>
+                        {loading ? "Saving..." : "Save changes"}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

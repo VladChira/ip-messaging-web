@@ -1,35 +1,60 @@
 "use client"
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CircleX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
-import { auth, api } from "@/lib/api";
+import { auth, UserData, getCurrentUser } from "@/lib/api";
+
+import Cookies from 'js-cookie';
 
 export function DeleteAccountDialog() {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [user, setUser] = useState<UserData | null>(null);
+
+    // Load the current user
+    useEffect(() => {
+        const currentUser = getCurrentUser();
+        setUser(currentUser);
+    }, []);
 
     const handleDeleteAccount = async () => {
+        if (!user?.userId) return;
+
         try {
             setIsDeleting(true);
             setError(null);
-            
+
             // Call the API to delete the user account
-            await api.delete('/users/delete-account');
-            
+            const response = await fetch("https://c9server.go.ro/messaging-api/delete-user/" +
+                user?.userId.toString(), {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${Cookies.get("token")}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to update name.");
+            }
+
             // Log the user out
             auth.logout();
-            
+
             // Close the dialog
             setIsOpen(false);
-            
-            // Redirect to register page
-            router.push("/register");
-            
+
+            // Redirect to login page after a short delay
+            setTimeout(() => {
+                router.push("/register");
+            }, 1000);
+
+
         } catch (err) {
             console.error("Failed to delete account:", err);
             setError("Failed to delete your account. Please try again later.");
@@ -54,23 +79,23 @@ export function DeleteAccountDialog() {
                         and remove your data from our servers.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 {error && (
                     <div className="bg-red-50 p-3 rounded-md text-red-500 text-sm mb-2">
                         {error}
                     </div>
                 )}
-                
-                <DialogFooter className="gap-2 sm:gap-0">
-                    <Button 
-                        variant="outline" 
+
+                <DialogFooter className="gap-2 sm:gap-3">
+                    <Button
+                        variant="outline"
                         onClick={() => setIsOpen(false)}
                         disabled={isDeleting}
                     >
                         Cancel
                     </Button>
-                    <Button 
-                        variant="destructive" 
+                    <Button
+                        variant="destructive"
                         onClick={handleDeleteAccount}
                         disabled={isDeleting}
                     >

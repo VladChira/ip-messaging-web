@@ -39,7 +39,7 @@ const SettingsList = () => {
                 <div className="py-2 rounded-md hover:bg-muted cursor-pointer pb-5">
                     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer p-2">
                         <Avatar className="h-13 w-13">
-                            <AvatarImage src="/test" alt={user?.name || "User"} />
+                            <AvatarImage alt={user?.name || "User"} />
                             <AvatarFallback>{user ? getInitials(user.name) : "?"}</AvatarFallback>
                         </Avatar>
 
