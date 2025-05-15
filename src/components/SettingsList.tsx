@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { auth, getCurrentUser, UserData } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { getInitials } from "@/lib/constants";
 
 const SettingsList = () => {
     const router = useRouter();
@@ -30,18 +31,6 @@ const SettingsList = () => {
         
         // Redirect to login page
         router.push("/login");
-    };
-
-    // Get initials for avatar fallback
-    const getInitials = (name: string): string => {
-        if (!name) return "?";
-        
-        const nameArray = name.split(" ");
-        if (nameArray.length >= 2) {
-            return `${nameArray[0][0]}${nameArray[1][0]}`.toUpperCase();
-        }
-        
-        return name.slice(0, 2).toUpperCase();
     };
 
     return (

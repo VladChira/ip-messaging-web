@@ -2,62 +2,28 @@
 
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ChatAppUser, loggedInUserID } from '@/lib/constants';
+import { getCurrentUser, UserData } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 export type AccountDetailsProps = {
     showDetails?: boolean;
 };
 
 const AccountDetails: React.FC<AccountDetailsProps> = ({ showDetails = false }) => {
-    const [user, setUser] = useState<ChatAppUser>();
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
+    const [user, setUser] = useState<UserData | null>(null);
+
+    // Get the current user on component mount
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                setLoading(true);
-                const response = await fetch(
-                    "https://c9server.go.ro/messaging-api/users"
-                );
-                
-                if (!response.ok) {
-                    throw new Error(`API responded with status: ${response.status}`);
-                }
+        const currentUser = getCurrentUser();
+        setUser(currentUser);
 
-                const data = await response.json();
-                setUser(data.users[loggedInUserID]);
-                setError(null);
-            } catch (err) {
-                console.error("Failed to fetch user data:", err);
-                setError("Could not load user information. Please try again later.");
-                // Optionally, you could use a fallback user object here
-                // setUser({ name: "Guest User", username: "guest", ... })
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUsers();
-    }, []);
-
-    // Show loading state
-    if (loading) {
-        return (
-            <div className="py-2 p-2 flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">Loading user information...</p>
-            </div>
-        );
-    }
-
-    // Show error state
-    if (error && !user) {
-        return (
-            <div className="py-2 p-2">
-                <p className="text-sm text-red-500">{error}</p>
-            </div>
-        );
-    }
+        // If no user is found, redirect to login
+        if (!currentUser) {
+            router.push("/login");
+        }
+    }, [router]);
 
     // If no user data is available after loading completes
     if (!user) {
