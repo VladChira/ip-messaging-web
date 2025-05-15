@@ -20,8 +20,6 @@ import { ChatAppUser } from "@/lib/constants";
 
 export function NewChatDialog() {
   const [friends, setFriends] = useState<ChatAppUser[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   const [user, setUser] = useState<UserData | null>(null);
@@ -36,7 +34,6 @@ export function NewChatDialog() {
     const fetchUsers = async () => {
       if (!user?.userId) return;
       try {
-        setLoading(true);
         const response = await fetch(
           "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
           user?.userId.toString(),
@@ -54,13 +51,10 @@ export function NewChatDialog() {
 
         const data = await response.json();
         setFriends(data.friends || []);
-        setError(null);
       } catch (err) {
         console.error("Failed to fetch friends:", err);
-        setError("Could not load friends list. Please try again later.");
         setFriends([]);
       } finally {
-        setLoading(false);
       }
     };
 

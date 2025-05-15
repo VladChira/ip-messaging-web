@@ -3,9 +3,6 @@
 import { CirclePlus } from "lucide-react";
 import { StatusList } from "@/components/StatusList";
 import UpdateStatusDialog from "@/components/UpdateStatusDialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getInitials } from "@/lib/constants";
-import { Separator } from "@radix-ui/react-separator";
 
 export default function StatusPage() {
     return (

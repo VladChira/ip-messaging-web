@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { CirclePlus } from "lucide-react";
-import { UserData, getCurrentUser } from "@/lib/api";
-import { ChatAppUser } from "@/lib/constants";
+import { UserData } from "@/lib/api";
 import { useState, useEffect } from "react";
 
 import Cookies from 'js-cookie';
@@ -22,7 +21,6 @@ const UpdateStatusDialog = () => {
             setUser(JSON.parse(storedUser));
         }
     };
-
 
     // Load the current user
     useEffect(() => {
@@ -78,7 +76,7 @@ const UpdateStatusDialog = () => {
                 <DialogHeader>
                     <DialogTitle>New Status Update</DialogTitle>
                     <DialogDescription>
-                        Let others know what you're up to.
+                        Let others know what you&apos;re up to.
                     </DialogDescription>
                 </DialogHeader>
                 <form className="grid gap-4 py-4">
