@@ -6,7 +6,7 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { CirclePlus } from "lucide-react";
 import { UserData } from "@/lib/api";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 import Cookies from 'js-cookie';
 
@@ -51,7 +51,6 @@ const UpdateStatusDialog = () => {
 
             // Store user in localStorage
             const data = await response.json()
-            console.log(data);
             localStorage.setItem("user", JSON.stringify(data));
 
         } catch (err) {
@@ -63,6 +62,11 @@ const UpdateStatusDialog = () => {
         setOpen(false);
         window.location.reload();
     };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        await handlePostStatusUpdate();
+    }
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -79,7 +83,7 @@ const UpdateStatusDialog = () => {
                         Let others know what you&apos;re up to.
                     </DialogDescription>
                 </DialogHeader>
-                <form className="grid gap-4 py-4">
+                <form className="grid gap-4 py-4" onSubmit={handleSubmit}>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="status" className="text-right">
                             Status

@@ -14,10 +14,12 @@ export function ChangePasswordDialog() {
     const router = useRouter();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [currentPassword, setCurrentPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<UserData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [confirming, setConfirming] = useState(false);
 
     // Load the current user
     useEffect(() => {
@@ -30,7 +32,7 @@ export function ChangePasswordDialog() {
         setError(null);
 
         // Check if all fields are filled
-        if (!password.trim() || !confirmPassword.trim()) {
+        if (!password.trim() || !confirmPassword.trim() && !currentPassword.trim()) {
             setError("All fields are required");
             return false;
         }
@@ -77,7 +79,10 @@ export function ChangePasswordDialog() {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${Cookies.get("token")}`,
                 },
-                body: JSON.stringify({ "newPassword": password }),
+                body: JSON.stringify({
+                    "newPassword": password,
+                    "currentPassword": currentPassword,
+                }),
             });
 
             if (!response.ok) {
@@ -132,6 +137,16 @@ export function ChangePasswordDialog() {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="current-password">Current password</Label>
+                        <Input
+                            id="current-password"
+                            type="password"
+                            className="col-span-3"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="name">
                             New password
                         </Label>
@@ -145,9 +160,34 @@ export function ChangePasswordDialog() {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button type="button" onClick={handleSubmit} disabled={loading}>
-                        {loading ? "Updating..." : "Update password"}
-                    </Button>
+                    {confirming ? (
+                        <div className="flex gap-2">
+                            <Button
+                                variant="secondary"
+                                onClick={() => setConfirming(false)}
+                                disabled={loading}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                            >
+                                {loading ? "Updating..." : "Click again to confirm"}
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                if (validateForm()) setConfirming(true);
+                            }}
+                            disabled={loading}
+                        >
+                            Change password
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

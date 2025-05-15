@@ -6,23 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle, CheckCircle, UserPen } from "lucide-react";
-import { UserData, auth, getCurrentUser } from "@/lib/api";
+import { UserData } from "@/lib/api";
 
 import Cookies from 'js-cookie';
-import { useRouter } from "next/navigation";
 
 export function ChangeNameDialog() {
-    const router = useRouter();
     const [name, setName] = useState("");
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState<UserData | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+    const loadUser = () => {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            setUser(JSON.parse(storedUser));
+        }
+    };
+
     // Load the current user
     useEffect(() => {
-        const currentUser = getCurrentUser();
-        setUser(currentUser);
+        loadUser();
     }, []);
 
     const handleSubmit = async () => {
@@ -44,14 +48,10 @@ export function ChangeNameDialog() {
                 throw new Error("Failed to update name.");
             }
 
-            setSuccess("Name change successful! Redirecting to login...");
+            // Store user in localStorage
+            const data = await response.json()
+            localStorage.setItem("user", JSON.stringify(data));
 
-            auth.logout();
-
-            // Redirect to login page after a short delay
-            setTimeout(() => {
-                router.push("/login");
-            }, 1500);
 
         } catch (err) {
             console.error("Name change error:", err);
@@ -59,6 +59,8 @@ export function ChangeNameDialog() {
         } finally {
             setLoading(false);
         }
+        loadUser();
+        window.location.reload();
     };
 
     return (
