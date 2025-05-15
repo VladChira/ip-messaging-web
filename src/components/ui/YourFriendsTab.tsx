@@ -2,24 +2,42 @@
 
 import { FriendListItem } from "../FriendItem";
 import { useEffect, useState } from "react";
-import { ChatAppUser, loggedInUserID } from "@/lib/constants";
+import { ChatAppUser } from "@/lib/constants";
 import { Separator } from "./separator";
 import { HeartCrack, AlertCircle } from "lucide-react";
+import { getCurrentUser, UserData } from "@/lib/api";
+
+import Cookies from 'js-cookie';
 
 const YourFriendsTab = () => {
   const [friends, setFriends] = useState<ChatAppUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // Load the current user
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!user?.userId) return;
       try {
         setLoading(true);
         const response = await fetch(
           "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-            loggedInUserID.toString()
+            user?.userId.toString(),
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          }
         );
-        
+
         if (!response.ok) {
           throw new Error(`API responded with status: ${response.status}`);
         }
@@ -37,7 +55,7 @@ const YourFriendsTab = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [user?.userId]);
 
   if (loading) {
     return (
@@ -52,7 +70,9 @@ const YourFriendsTab = () => {
       <div className="flex flex-col items-center justify-center min-h-[200px] text-center gap-2">
         <AlertCircle className="h-6 w-6 text-red-500" />
         <p className="text-sm text-red-500">{error}</p>
-        <p className="text-xs text-muted-foreground">Check your connection and try again</p>
+        <p className="text-xs text-muted-foreground">
+          Check your connection and try again
+        </p>
       </div>
     );
   }
