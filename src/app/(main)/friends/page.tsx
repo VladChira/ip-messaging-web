@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { User } from "lucide-react";
 import { AddFriendListItem } from "@/components/AddFriendItem";
 import { Separator } from "@/components/ui/separator";
-import YourFriendsTab from "@/components/ui/YourFriendsTab";
+import YourFriendsTab from "@/components/YourFriendsTab";
 
 export default function FriendsPage() {
     return (

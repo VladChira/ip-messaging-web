@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,20 +14,58 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Hardcoded users list
-const users = [
-  { id: 1, name: "Donald Trump", username: "realDonaldTrump", avatar: "/avatars/donald.jpg" },
-  { id: 2, name: "Elon Musk", username: "elonmusk", avatar: "/avatars/elon.jpg" },
-  { id: 3, name: "Mark Zuckerberg", username: "zuck", avatar: "/avatars/mark.jpg" },
-  { id: 4, name: "Bill Gates", username: "BillGates", avatar: "/avatars/bill.jpg" },
-  { id: 5, name: "Jeff Bezos", username: "JeffBezos", avatar: "/avatars/jeff.jpg" },
-  { id: 6, name: "Sundar Pichai", username: "sundarpichai", avatar: "/avatars/sundar.jpg" },
-  { id: 7, name: "Tim Cook", username: "tim_cook", avatar: "/avatars/tim.jpg" },
-  { id: 8, name: "Satya Nadella", username: "satyanadella", avatar: "/avatars/satya.jpg" },
-];
+import Cookies from 'js-cookie';
+import { UserData, getCurrentUser } from "@/lib/api";
+import { ChatAppUser } from "@/lib/constants";
 
 export function NewChatDialog() {
+  const [friends, setFriends] = useState<ChatAppUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+
+  const [user, setUser] = useState<UserData | null>(null);
+
+  // Load the current user
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (!user?.userId) return;
+      try {
+        setLoading(true);
+        const response = await fetch(
+          "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
+          user?.userId.toString(),
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`API responded with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setFriends(data.friends || []);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch friends:", err);
+        setError("Could not load friends list. Please try again later.");
+        setFriends([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, [user?.userId]);
 
   const handleStartChat = (userId: number) => {
     console.log(`Starting chat with user ID: ${userId}`);
@@ -48,19 +86,19 @@ export function NewChatDialog() {
         <DialogHeader>
           <DialogTitle>New Chat</DialogTitle>
           <DialogDescription>
-            Select a user to start a new conversation
+            Select a friend to start a new conversation
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="mt-4 max-h-[60vh]">
           <div className="space-y-2 pr-4">
-            {users.map((user) => (
+            {friends.map((user) => (
               <div
-                key={user.id}
+                key={user.userId}
                 className="flex items-center justify-between p-3 rounded-md hover:bg-muted"
               >
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage alt={user.name} />
                     <AvatarFallback>
                       {user.name.split(" ").map(n => n[0]).join("")}
                     </AvatarFallback>
@@ -70,9 +108,9 @@ export function NewChatDialog() {
                     <p className="text-sm text-muted-foreground">@{user.username}</p>
                   </div>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleStartChat(user.id)}
+                <Button
+                  size="sm"
+                  onClick={() => handleStartChat(user.userId)}
                 >
                   Start Chat
                 </Button>
