@@ -86,9 +86,13 @@ export function ChangePasswordDialog() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to update name.");
+                const errorData = await response.json();
+                if (response.status === 401) {
+                    throw new Error("Current password is incorrect!");
+                } else {
+                    throw new Error(errorData.error || "Failed to change password!");
+                }
             }
-
             // Show success message
             setSuccess("Password change successful! Redirecting to login...");
 
