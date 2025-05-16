@@ -13,6 +13,32 @@ export interface UserData {
   [key: string]: unknown;
 }
 
+export interface Chat {
+  chatId: string;
+  name: string;
+  chatType: string;
+  createdAt: string;
+}
+
+export interface Message {
+  messageId: string,
+  chatId: string,
+  senderId: string,
+  text: string,
+  sentAt: string
+}
+
+export interface ChatMember {
+  userId: number,
+  charId: string,
+  joinedAt: string
+}
+
+export type ChatDetail = {
+  members: UserData[];
+  messages: Message[];
+};
+
 // Base URL for all API requests
 const API_BASE_URL = "https://c9server.go.ro/messaging-api";
 
@@ -22,7 +48,7 @@ const API_BASE_URL = "https://c9server.go.ro/messaging-api";
 export function getCurrentUser(): UserData | null {
   const userStr = localStorage.getItem("user");
   if (!userStr) return null;
-  
+
   try {
     return JSON.parse(userStr) as UserData;
   } catch (error) {
@@ -47,40 +73,40 @@ export const api = {
    */
   get: async <T>(endpoint: string): Promise<T> => {
     const token = getToken();
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
-        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return response.json() as Promise<T>;
   },
-  
+
   /**
    * Make a POST request
    */
   post: async <T, D>(endpoint: string, data: D): Promise<T> => {
     const token = getToken();
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
       headers: {
-        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       let errorMessage;
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.message || `API error: ${response.status}`;
@@ -88,53 +114,53 @@ export const api = {
         // Using empty catch block to avoid unused variable
         errorMessage = errorText || `API error: ${response.status}`;
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     return response.json() as Promise<T>;
   },
-  
+
   /**
    * Make a PUT request
    */
   put: async <T, D>(endpoint: string, data: D): Promise<T> => {
     const token = getToken();
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PUT",
       headers: {
-        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return response.json() as Promise<T>;
   },
-  
+
   /**
    * Make a DELETE request
    */
   delete: async <T>(endpoint: string): Promise<T> => {
     const token = getToken();
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
       headers: {
-        ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         "Content-Type": "application/json",
       },
     });
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     return response.json() as Promise<T>;
   },
 };
@@ -173,61 +199,69 @@ export const auth = {
    * Login user
    */
   login: async (username: string, password: string): Promise<LoginResponse> => {
-    const data = await api.post<LoginResponse, LoginCredentials>("/login", { username, password });
-    
+    const data = await api.post<LoginResponse, LoginCredentials>("/login", {
+      username,
+      password,
+    });
+
     // Store the JWT token in HTTP cookies
-    Cookies.set("token", data.token, { 
+    Cookies.set("token", data.token, {
       expires: 7, // 7 days
       secure: false,
-      sameSite: "Lax"
+      sameSite: "Lax",
       // secure: process.env.NODE_ENV === "production",
-      // sameSite: "strict" 
+      // sameSite: "strict"
     });
-    
+
     // Store user in localStorage
     localStorage.setItem("user", JSON.stringify(data.user));
-    
+
     return data;
   },
-  
+
   /**
    * Register a new user
    */
-  register: async (userData: RegisterCredentials): Promise<RegisterResponse> => {
-    const data = await api.post<RegisterResponse, RegisterCredentials>("/register", userData);
+  register: async (
+    userData: RegisterCredentials
+  ): Promise<RegisterResponse> => {
+    const data = await api.post<RegisterResponse, RegisterCredentials>(
+      "/register",
+      userData
+    );
     return data;
   },
-  
+
   /**
    * Logout user
    */
   logout: () => {
     // Remove token
     Cookies.remove("token");
-    
+
     // Remove user from localStorage
     localStorage.removeItem("user");
   },
-  
+
   /**
    * Delete the user's account
    */
   deleteAccount: async (): Promise<void> => {
     try {
       // Call the API to delete the account
-      await api.delete<{ success: boolean }>('/users/delete-account');
-      
+      await api.delete<{ success: boolean }>("/users/delete-account");
+
       // Clear authentication data
       Cookies.remove("token");
       localStorage.removeItem("user");
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error("Failed to delete account:", error);
       return Promise.reject(error);
     }
   },
-  
+
   /**
    * Check if user is authenticated
    */
@@ -267,29 +301,39 @@ export const friends = {
   /**
    * Search for users to add as friends
    */
-  searchUsers: async (query: string): Promise<{ users: UserSearchResult[] }> => {
+  searchUsers: async (
+    query: string
+  ): Promise<{ users: UserSearchResult[] }> => {
     return api.get(`/search-users?query=${encodeURIComponent(query)}`);
   },
 
   /**
    * Send a friend request to another user
    */
-  sendFriendRequest: async (recipientId: number): Promise<{ message: string }> => {
-    return api.post('/send-friend-request', { recipient_id: recipientId });
+  sendFriendRequest: async (
+    recipientId: number
+  ): Promise<{ message: string }> => {
+    return api.post("/send-friend-request", { recipient_id: recipientId });
   },
 
   /**
    * Get pending friend requests for the current user
    */
   getFriendRequests: async (): Promise<FriendRequestsResponse> => {
-    return api.get('/get-friend-requests');
+    return api.get("/get-friend-requests");
   },
 
   /**
    * Accept or reject a friend request
    */
-  respondToFriendRequest: async (requestId: number, action: 'accept' | 'reject'): Promise<{ message: string }> => {
-    return api.post('/respond-to-friend-request', { request_id: requestId, action });
+  respondToFriendRequest: async (
+    requestId: number,
+    action: "accept" | "reject"
+  ): Promise<{ message: string }> => {
+    return api.post("/respond-to-friend-request", {
+      request_id: requestId,
+      action,
+    });
   },
 
   /**
@@ -301,5 +345,5 @@ export const friends = {
       throw new Error("User not authenticated");
     }
     return api.get(`/get-friends-by-user-id/${currentUser.userId}`);
-  }
+  },
 };
