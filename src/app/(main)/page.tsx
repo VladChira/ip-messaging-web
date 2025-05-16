@@ -99,7 +99,12 @@ export default function Home() {
 
     fetchAll();
   }, [user?.userId]);
-  return (
+
+  function handleSendMessage(chatId: string, text: string): void {
+    console.log('Sent message ' + text + ' from chatID ' + chatId)
+  }
+
+   return (
     <div className="flex h-full w-full p-6">
       <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
@@ -119,7 +124,14 @@ export default function Home() {
         />
       </div>
       <div className="flex-1 ml-6 rounded-md bg-muted/10">
-        <CurrentChatPanel />
+        {selectedChatId != null && (
+        <CurrentChatPanel
+          user={user}
+          chat={chats.find((c) => c.chatId === selectedChatId)!}
+          detail={chatDetails[selectedChatId]!}
+          onSendMessage={handleSendMessage}
+        />
+        )}
       </div>
     </div>
   );

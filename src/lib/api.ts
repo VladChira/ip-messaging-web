@@ -23,7 +23,7 @@ export interface Chat {
 export interface Message {
   messageId: string,
   chatId: string,
-  senderId: string,
+  senderId: number,
   text: string,
   sentAt: string
 }
