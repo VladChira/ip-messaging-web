@@ -85,9 +85,7 @@ export function CurrentChatPanel({
             const author = detail.members.find(
               (m) => m.userId === msg.senderId
             );
-            const fallbackInitials = user
-              ? getInitials(author?.name || user.name)
-              : "ERR";
+            const fallbackInitials = author ? getInitials(author?.name) : "ERR";
             return (
               <ChatBubble
                 key={msg.messageId}

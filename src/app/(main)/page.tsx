@@ -8,6 +8,16 @@ import { UserData, Message, Chat, getCurrentUser, ChatDetail } from "@/lib/api";
 import { useState, useEffect } from "react";
 
 import Cookies from "js-cookie";
+import {
+  connectSocket,
+  onMessage,
+  onTyping,
+  onPresence,
+  disconnectSocket,
+  leaveChat,
+  joinChat,
+  sendMessage,
+} from "@/lib/socket";
 
 export default function Home() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -100,11 +110,47 @@ export default function Home() {
     fetchAll();
   }, [user?.userId]);
 
+  // 1️⃣ connect once on mount
+  useEffect(() => {
+    if (!user) return;
+    const token = Cookies.get("token");
+    connectSocket(token, user?.userId);
+
+    // subscribe to incoming events
+    onMessage((msg) => {
+      setChatDetails((prev) => {
+        const arr = prev[msg.chatId] || [];
+        return { ...prev, [msg.chatId]: [...arr, msg] };
+      });
+    });
+    onTyping((data) => {
+      /* console.log already in socket.js */
+    });
+    onPresence((data) => {
+      /* console.log already in socket.js */
+    });
+
+    return () => {
+      disconnectSocket();
+    };
+  }, [user]);
+
+  // 2️⃣ join / leave rooms when selection changes
+  useEffect(() => {
+    if (selectedChatId) {
+      joinChat(selectedChatId);
+    }
+    return () => {
+      if (selectedChatId) leaveChat(selectedChatId);
+    };
+  }, [selectedChatId]);
+
   function handleSendMessage(chatId: string, text: string): void {
-    console.log('Sent message ' + text + ' from chatID ' + chatId)
+    console.log("Sent message " + text + " from chatID " + chatId);
+    sendMessage(chatId, text);
   }
 
-   return (
+  return (
     <div className="flex h-full w-full p-6">
       <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
@@ -125,12 +171,12 @@ export default function Home() {
       </div>
       <div className="flex-1 ml-6 rounded-md bg-muted/10">
         {selectedChatId != null && (
-        <CurrentChatPanel
-          user={user}
-          chat={chats.find((c) => c.chatId === selectedChatId)!}
-          detail={chatDetails[selectedChatId]!}
-          onSendMessage={handleSendMessage}
-        />
+          <CurrentChatPanel
+            user={user}
+            chat={chats.find((c) => c.chatId === selectedChatId)!}
+            detail={chatDetails[selectedChatId]!}
+            onSendMessage={handleSendMessage}
+          />
         )}
       </div>
     </div>
