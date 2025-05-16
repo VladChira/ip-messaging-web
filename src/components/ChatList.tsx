@@ -28,6 +28,7 @@ export default function ChatList({
           members: [],
           messages: [],
         };
+        console.log(detail)
         const { members, messages } = detail;
         const latest = messages[messages.length - 1];
 

@@ -127,9 +127,15 @@ export default function Home() {
 
     // subscribe to incoming events
     onMessage((msg: any) => {
-      setChatDetails((prev) => {
-        const arr = prev[msg.chatId] || [];
-        return { ...prev, [msg.chatId]: [...[arr], msg] };
+      setChatDetails(prev => {
+        const detail = prev[msg.chatId] ?? { members: [], messages: [] };
+        return {
+          ...prev,
+          [msg.chatId]: {
+            ...detail,
+            messages: [...detail.messages, msg],
+          },
+        };
       });
     });
     onTyping((data: any) => {
