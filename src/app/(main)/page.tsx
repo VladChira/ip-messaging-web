@@ -5,9 +5,10 @@
 import ChatList from "@/components/ChatList";
 import { CurrentChatPanel } from "@/components/CurrentChat";
 import { NewChatDialog } from "@/components/NewChatDialog";
+import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { Input } from "@/components/ui/input";
 import { UserData, Message, Chat, getCurrentUser, ChatDetail } from "@/lib/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 import Cookies from "js-cookie";
 import {
@@ -38,82 +39,88 @@ export default function Home() {
     setUser(me);
   }, []);
 
-  // Fetch chats, users, messages & members in one shot
-  useEffect(() => {
+  // Define fetchAll as a callback function so we can reuse it for refreshChats
+  const fetchAll = useCallback(async () => {
     if (!user?.userId) return;
 
     const token = Cookies.get("token");
     const headers = { Authorization: `Bearer ${token}` };
 
-    const fetchAll = async () => {
-      try {
-        // -- Fetch chats --
-        const chatRes = await fetch(
-          "https://c9server.go.ro/messaging-api/get-chats",
-          { headers }
-        );
-        if (!chatRes.ok) throw new Error("Could not load chats");
-        const { chats: fetchedChats } = await chatRes.json();
-        setChats(fetchedChats);
+    try {
+      // -- Fetch chats --
+      const chatRes = await fetch(
+        "https://c9server.go.ro/messaging-api/get-chats",
+        { headers }
+      );
+      if (!chatRes.ok) throw new Error("Could not load chats");
+      const { chats: fetchedChats } = await chatRes.json();
+      setChats(fetchedChats);
 
-        // -- Fetch all users once --
-        const usersRes = await fetch(
-          "https://c9server.go.ro/messaging-api/users",
-          { headers }
-        );
-        if (!usersRes.ok) throw new Error("Could not load users");
-        const { users: allUsers }: { users: UserData[] } =
-          await usersRes.json();
+      // -- Fetch all users once --
+      const usersRes = await fetch(
+        "https://c9server.go.ro/messaging-api/users",
+        { headers }
+      );
+      if (!usersRes.ok) throw new Error("Could not load users");
+      const { users: allUsers }: { users: UserData[] } =
+        await usersRes.json();
 
-        // -- For each chat, fetch messages & members in parallel --
-        const entries = await Promise.all(
-          fetchedChats.map(async (chat: { chatId: string }) => {
-            // messages
-            const msgRes = await fetch(
-              `https://c9server.go.ro/messaging-api/get-messages/${chat.chatId}`,
-              { headers }
-            );
-            const { messages = [] }: { messages: Message[] } = msgRes.ok
-              ? await msgRes.json()
-              : { messages: [] };
+      // -- For each chat, fetch messages & members in parallel --
+      const entries = await Promise.all(
+        fetchedChats.map(async (chat: { chatId: string }) => {
+          // messages
+          const msgRes = await fetch(
+            `https://c9server.go.ro/messaging-api/get-messages/${chat.chatId}`,
+            { headers }
+          );
+          const { messages = [] }: { messages: Message[] } = msgRes.ok
+            ? await msgRes.json()
+            : { messages: [] };
 
-            // members
-            const memRes = await fetch(
-              `https://c9server.go.ro/messaging-api/get-members/${chat.chatId}`,
-              { headers }
-            );
-            const {
-              members: rawMembers = [],
-            }: {
-              members: { userId: number }[];
-            } = memRes.ok ? await memRes.json() : { members: [] };
+          // members
+          const memRes = await fetch(
+            `https://c9server.go.ro/messaging-api/get-members/${chat.chatId}`,
+            { headers }
+          );
+          const {
+            members: rawMembers = [],
+          }: {
+            members: { userId: number }[];
+          } = memRes.ok ? await memRes.json() : { members: [] };
 
-            // resolve user data
-            const members = rawMembers
-              .map((m) => allUsers.find((u) => u.userId === m.userId) ?? null)
-              .filter((u): u is UserData => u !== null);
+          // resolve user data
+          const members = rawMembers
+            .map((m) => allUsers.find((u) => u.userId === m.userId) ?? null)
+            .filter((u): u is UserData => u !== null);
 
-            return [
-              chat.chatId,
-              {
-                members,
-                messages,
-              },
-            ] as [string, ChatDetail];
-          })
-        );
+          return [
+            chat.chatId,
+            {
+              members,
+              messages,
+            },
+          ] as [string, ChatDetail];
+        })
+      );
 
-        // build map and set state
-        setChatDetails(Object.fromEntries(entries));
-      } catch (err) {
-        console.error("Error loading chat data:", err);
-        setChats([]);
-        setChatDetails({});
-      }
-    };
-
-    fetchAll();
+      // build map and set state
+      setChatDetails(Object.fromEntries(entries));
+    } catch (err) {
+      console.error("Error loading chat data:", err);
+      setChats([]);
+      setChatDetails({});
+    }
   }, [user?.userId]);
+
+  // Function to refresh chats after creating a new group
+  const refreshChats = useCallback(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  // Fetch chats, users, messages & members in one shot
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
   // 1️⃣ connect once on mount
   useEffect(() => {
@@ -177,7 +184,10 @@ export default function Home() {
             `}
             title={isSocketConnected ? "Connected" : "Disconnected"}
           />
-          <NewChatDialog />
+          <div className="flex gap-2">
+            <CreateGroupDialog onChatCreated={refreshChats} />
+            <NewChatDialog />
+          </div>
         </div>
 
         <Input placeholder="Search chats..."></Input>
