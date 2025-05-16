@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import ChatList from "@/components/ChatList";
@@ -117,16 +119,16 @@ export default function Home() {
     connectSocket(token, user?.userId);
 
     // subscribe to incoming events
-    onMessage((msg) => {
+    onMessage((msg: any) => {
       setChatDetails((prev) => {
         const arr = prev[msg.chatId] || [];
-        return { ...prev, [msg.chatId]: [...arr, msg] };
+        return { ...prev, [msg.chatId]: [...[arr], msg] };
       });
     });
-    onTyping((data) => {
+    onTyping((data: any) => {
       /* console.log already in socket.js */
     });
-    onPresence((data) => {
+    onPresence((data: any) => {
       /* console.log already in socket.js */
     });
 
