@@ -19,6 +19,8 @@ import {
   leaveChat,
   joinChat,
   sendMessage,
+  onConnect,
+  onDisconnect,
 } from "@/lib/socket";
 
 export default function Home() {
@@ -28,6 +30,7 @@ export default function Home() {
     {}
   );
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   // Load current user once
   useEffect(() => {
@@ -118,6 +121,10 @@ export default function Home() {
     const token = Cookies.get("token");
     connectSocket(token, user?.userId);
 
+    // flip our local flag when socket.io emits
+    onConnect(() => setIsSocketConnected(true));
+    onDisconnect(() => setIsSocketConnected(false));
+
     // subscribe to incoming events
     onMessage((msg: any) => {
       setChatDetails((prev) => {
@@ -157,6 +164,13 @@ export default function Home() {
       <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chats</h1>
+          <span
+            className={`
+              h-3 w-3 rounded-full
+              ${isSocketConnected ? "bg-green-500" : "bg-red-500"}
+            `}
+            title={isSocketConnected ? "Connected" : "Disconnected"}
+          />
           <NewChatDialog />
         </div>
 

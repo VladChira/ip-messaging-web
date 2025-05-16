@@ -5,10 +5,15 @@ let socket = null;
 
 export function connectSocket(token, userId) {
   if (!socket) {
-    socket = io("http://localhost:5000", {
-      path: "/messaging-api",
-      transports: ["websocket"],
+    socket = io("https://c9server.go.ro", {
+      path: "/messaging-api/socket.io",     // must match your server’s path
+      transports: ["polling", "websocket"],  // allow polling first, then upgrade
+      forceNew: true,                        // create a new Manager per tab
       auth: { token, userId },
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      timeout: 20000,
     });
 
     socket.on("connect", () => {
@@ -20,6 +25,14 @@ export function connectSocket(token, userId) {
     });
   }
 }
+
+export function onConnect(cb) {
+  socket?.on("connect", cb);
+}
+export function onDisconnect(cb) {
+  socket?.on("disconnect", cb);
+}
+
 
 export function disconnectSocket() {
   if (socket) {
