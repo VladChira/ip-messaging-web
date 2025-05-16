@@ -109,10 +109,10 @@ export const api = {
 
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || `API error: ${response.status}`;
+        errorMessage = errorJson.message || `Username or password is incorrect!`;
       } catch {
         // Using empty catch block to avoid unused variable
-        errorMessage = errorText || `API error: ${response.status}`;
+        errorMessage = errorText || `Username or password is incorrect!`;
       }
 
       throw new Error(errorMessage);
