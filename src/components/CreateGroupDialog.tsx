@@ -93,7 +93,7 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
   };
 
   const handleCreateGroup = async () => {
-    if (selectedFriends.length < 2) {
+    if (selectedFriends.length < 1) {
       alert("Please select at least 2 friends for a group chat");
       return;
     }
