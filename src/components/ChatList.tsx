@@ -30,7 +30,6 @@ export default function ChatList({
           messages: [],
           chatMembers: [],
         };
-        console.log(detail)
         const { members, messages, chatMembers } = detail;
         
         // Sort messages to get the actual latest message
@@ -44,20 +43,29 @@ export default function ChatList({
         if (chat.chatType === "group") {
           displayName = chat.name || "Group";
         } else {
-          // one-on-one: find the other user
+          // one-on-one: find the other user (FIX: Convert to strings for comparison)
           const other = members.find((m) => String(m.userId) !== String(user?.userId));
           displayName = other?.name || "Unknown";
         }
 
         const isSelected = chat.chatId === selectedChatId;
         
-        // Check if the latest message was sent by the current user
-        const isLastMessageByCurrentUser = Boolean(latest && user && String(latest.senderId) === String(user.userId));
+        // Check if the latest message was sent by the current user (FIX: Convert to strings)
+        const isLastMessageByCurrentUser = Boolean(
+          latest && user && String(latest.senderId) === String(user.userId)
+        );
         
         // Get the read status from the latest message (if it exists and was sent by current user)
         const isLastMessageRead = isLastMessageByCurrentUser && latest 
           ? isMessageRead(latest, sortedMessages, chatMembers, user?.userId || 0)
           : false;
+
+        // Get the sender name for group chats (only if not sent by current user)
+        let lastMessageSenderName = "";
+        if (latest && chat.chatType === "group" && !isLastMessageByCurrentUser) {
+          const sender = members.find((m) => String(m.userId) === String(latest.senderId));
+          lastMessageSenderName = sender?.name || sender?.username || `User ${latest.senderId}`;
+        }
 
         return (
           <div key={chat.chatId}>
@@ -77,6 +85,8 @@ export default function ChatList({
                 unreadCount={0} // You can implement this using chat.unreadCount if available
                 isRead={isLastMessageRead}
                 isLastMessageByCurrentUser={isLastMessageByCurrentUser}
+                lastMessageSenderName={lastMessageSenderName}
+                isGroupChat={chat.chatType === "group"}
               />
             </div>
             {idx !== chats.length - 1 && <Separator />}

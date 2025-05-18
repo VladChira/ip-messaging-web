@@ -10,6 +10,8 @@ export function ChatListItem({
   unreadCount,
   isRead,
   isLastMessageByCurrentUser,
+  lastMessageSenderName,
+  isGroupChat,
 }: {
   name: string;
   avatarUrl?: string;
@@ -18,6 +20,8 @@ export function ChatListItem({
   unreadCount: number;
   isRead: boolean;
   isLastMessageByCurrentUser: boolean;
+  lastMessageSenderName?: string;
+  isGroupChat?: boolean;
 }) {
   return (
     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer px-2 py-2">
@@ -40,7 +44,15 @@ export function ChatListItem({
           {isLastMessageByCurrentUser && (
             <CheckCheck className={`size-4 shrink-0 ${isRead ? 'text-blue-500' : 'text-gray-400'}`} />
           )}
-          <span className="truncate">{lastMessage}</span>
+          <span className="truncate">
+            {/* Show sender name in group chats for messages not sent by current user */}
+            {isGroupChat && lastMessageSenderName && (
+              <span className="font-medium">
+                {lastMessageSenderName}:{" "}
+              </span>
+            )}
+            {lastMessage}
+          </span>
         </p>
       </div>
 
