@@ -9,6 +9,7 @@ export function ChatListItem({
   lastMessageTime,
   unreadCount,
   isRead,
+  isLastMessageByCurrentUser,
 }: {
   name: string;
   avatarUrl?: string;
@@ -16,6 +17,7 @@ export function ChatListItem({
   lastMessageTime: string; // already formatted like "2:14 PM"
   unreadCount: number;
   isRead: boolean;
+  isLastMessageByCurrentUser: boolean;
 }) {
   return (
     <div className="flex items-start gap-3 rounded-md hover:bg-muted cursor-pointer px-2 py-2">
@@ -34,7 +36,10 @@ export function ChatListItem({
           </p>
         </div>
         <p className="inline-flex items-center gap-1 text-sm text-muted-foreground truncate w-full">
-          {!isRead && <CheckCheck className="size-4 shrink-0" />}
+          {/* Only show double ticks if the last message was sent by the current user */}
+          {isLastMessageByCurrentUser && (
+            <CheckCheck className={`size-4 shrink-0 ${isRead ? 'text-blue-500' : 'text-gray-400'}`} />
+          )}
           <span className="truncate">{lastMessage}</span>
         </p>
       </div>

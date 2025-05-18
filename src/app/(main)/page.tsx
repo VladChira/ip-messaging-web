@@ -7,7 +7,7 @@ import { CurrentChatPanel } from "@/components/CurrentChat";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { Input } from "@/components/ui/input";
-import { UserData, Message, Chat, getCurrentUser, ChatDetail } from "@/lib/api";
+import { UserData, Message, Chat, getCurrentUser, ChatDetail, chats, api, ChatMember } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 
 import Cookies from "js-cookie";
@@ -26,7 +26,7 @@ import {
 
 export default function Home() {
   const [user, setUser] = useState<UserData | null>(null);
-  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatsList, setChatsList] = useState<Chat[]>([]);
   const [chatDetails, setChatDetails] = useState<Record<string, ChatDetail>>(
     {}
   );
@@ -43,63 +43,56 @@ export default function Home() {
   const fetchAll = useCallback(async () => {
     if (!user?.userId) return;
 
-    const token = Cookies.get("token");
-    const headers = { Authorization: `Bearer ${token}` };
-
     try {
-      // -- Fetch chats --
-      const chatRes = await fetch(
-        "https://c9server.go.ro/messaging-api/get-chats",
-        { headers }
-      );
-      if (!chatRes.ok) throw new Error("Could not load chats");
-      const { chats: fetchedChats } = await chatRes.json();
-      setChats(fetchedChats);
+      // -- Fetch chats using API function --
+      const { chats: fetchedChats } = await chats.getChats();
+      setChatsList(fetchedChats);
 
       // -- Fetch all users once --
-      const usersRes = await fetch(
-        "https://c9server.go.ro/messaging-api/users",
-        { headers }
-      );
-      if (!usersRes.ok) throw new Error("Could not load users");
-      const { users: allUsers }: { users: UserData[] } =
-        await usersRes.json();
+      const { users: allUsers }: { users: UserData[] } = await api.get("/users");
 
-      // -- For each chat, fetch messages & members in parallel --
+      // -- For each chat, fetch messages, members, and chatMembers in parallel --
       const entries = await Promise.all(
-        fetchedChats.map(async (chat: { chatId: string }) => {
-          // messages
-          const msgRes = await fetch(
-            `https://c9server.go.ro/messaging-api/get-messages/${chat.chatId}`,
-            { headers }
-          );
-          const { messages = [] }: { messages: Message[] } = msgRes.ok
-            ? await msgRes.json()
-            : { messages: [] };
+        fetchedChats.map(async (chat: Chat) => {
+          try {
+            // Get messages
+            const { messages = [] }: { messages: Message[] } = await chats.getMessages(chat.chatId);
+            
+            // Get user members (UserData objects)
+            const { members: userMembers = [] }: { members: UserData[] } = await chats.getMembers(chat.chatId);
+            
+            // Get chat members (ChatMember objects with read status) - this is the missing piece!
+            const token = Cookies.get("token");
+            const chatMembersRes = await fetch(
+              `https://c9server.go.ro/messaging-api/get-chat-members/${chat.chatId}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            
+            let chatMembers: ChatMember[] = [];
+            if (chatMembersRes.ok) {
+              const { members: rawChatMembers } = await chatMembersRes.json();
+              chatMembers = rawChatMembers || [];
+            }
 
-          // members
-          const memRes = await fetch(
-            `https://c9server.go.ro/messaging-api/get-members/${chat.chatId}`,
-            { headers }
-          );
-          const {
-            members: rawMembers = [],
-          }: {
-            members: { userId: number }[];
-          } = memRes.ok ? await memRes.json() : { members: [] };
-
-          // resolve user data
-          const members = rawMembers
-            .map((m) => allUsers.find((u) => u.userId === m.userId) ?? null)
-            .filter((u): u is UserData => u !== null);
-
-          return [
-            chat.chatId,
-            {
-              members,
-              messages,
-            },
-          ] as [string, ChatDetail];
+            return [
+              chat.chatId,
+              {
+                members: userMembers,
+                messages,
+                chatMembers, // This was missing!
+              },
+            ] as [string, ChatDetail];
+          } catch (error) {
+            console.error(`Error fetching details for chat ${chat.chatId}:`, error);
+            return [
+              chat.chatId,
+              {
+                members: [],
+                messages: [],
+                chatMembers: [],
+              },
+            ] as [string, ChatDetail];
+          }
         })
       );
 
@@ -107,7 +100,7 @@ export default function Home() {
       setChatDetails(Object.fromEntries(entries));
     } catch (err) {
       console.error("Error loading chat data:", err);
-      setChats([]);
+      setChatsList([]);
       setChatDetails({});
     }
   }, [user?.userId]);
@@ -126,7 +119,8 @@ export default function Home() {
   useEffect(() => {
     if (!user) return;
     const token = Cookies.get("token");
-    connectSocket(token, user?.userId);
+    // Convert userId to string to match backend expectations
+    connectSocket(token, String(user.userId));
 
     // flip our local flag when socket.io emits
     onConnect(() => setIsSocketConnected(true));
@@ -134,8 +128,9 @@ export default function Home() {
 
     // subscribe to incoming events
     onMessage((msg: any) => {
+      console.log("Received new message:", msg);
       setChatDetails(prev => {
-        const detail = prev[msg.chatId] ?? { members: [], messages: [] };
+        const detail = prev[msg.chatId] ?? { members: [], messages: [], chatMembers: [] };
         return {
           ...prev,
           [msg.chatId]: {
@@ -168,7 +163,7 @@ export default function Home() {
   }, [selectedChatId]);
 
   function handleSendMessage(chatId: string, text: string): void {
-    console.log("Sent message " + text + " from chatID " + chatId);
+    console.log("Sending message:", text, "to chatID:", chatId);
     sendMessage(chatId, text);
   }
 
@@ -195,17 +190,17 @@ export default function Home() {
         {/* Scrollable Chat List */}
         <ChatList
           user={user}
-          chats={chats}
+          chats={chatsList}
           chatDetails={chatDetails}
           selectedChatId={selectedChatId}
           onSelectChat={setSelectedChatId}
         />
       </div>
       <div className="flex-1 ml-6 rounded-md bg-muted/10">
-        {selectedChatId != null && (
+        {selectedChatId != null && chatDetails[selectedChatId] && (
           <CurrentChatPanel
             user={user}
-            chat={chats.find((c) => c.chatId === selectedChatId)!}
+            chat={chatsList.find((c) => c.chatId === selectedChatId)!}
             detail={chatDetails[selectedChatId]!}
             onSendMessage={handleSendMessage}
           />

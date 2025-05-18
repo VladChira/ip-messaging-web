@@ -25,18 +25,21 @@ export interface Message {
   chatId: string,
   senderId: number,
   text: string,
-  sentAt: string
+  sentAt: string,
 }
 
 export interface ChatMember {
   userId: number,
-  charId: string,
-  joinedAt: string
+  chatId: string,  // Fixed typo: was "charId"
+  joinedAt: string,
+  lastReadMessageId?: string,
+  lastReadAt?: string
 }
 
 export type ChatDetail = {
   members: UserData[];
   messages: Message[];
+  chatMembers: ChatMember[]; // Add this to track read status
 };
 
 // Base URL for all API requests
@@ -345,5 +348,43 @@ export const friends = {
       throw new Error("User not authenticated");
     }
     return api.get(`/get-friends-by-user-id/${currentUser.userId}`);
+  },
+};
+
+// Chat related functions
+export const chats = {
+  /**
+   * Get all chats for the current user
+   */
+  getChats: async (): Promise<{ chats: Chat[] }> => {
+    return api.get("/get-chats");
+  },
+
+  /**
+   * Get messages for a specific chat
+   */
+  getMessages: async (chatId: string): Promise<{ messages: Message[] }> => {
+    return api.get(`/get-messages/${chatId}`);
+  },
+
+  /**
+   * Get members for a specific chat
+   */
+  getMembers: async (chatId: string): Promise<{ members: UserData[] }> => {
+    return api.get(`/get-members/${chatId}`);
+  },
+
+  /**
+   * Mark messages as read up to a specific message ID
+   */
+  markAsRead: async (chatId: string, messageId: string): Promise<{ success: boolean }> => {
+    return api.post("/mark-as-read", { chatId, messageId });
+  },
+
+  /**
+   * Get unread counts for all chats
+   */
+  getUnreadCounts: async (): Promise<{ unreadCounts: Record<string, number>, totalUnread: number }> => {
+    return api.get("/unread-counts");
   },
 };

@@ -4,6 +4,7 @@ import { Chat, UserData, ChatDetail } from "@/lib/api";
 import { ChatListItem } from "./ChatListItem";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import { isMessageRead } from "@/lib/chatUtils";
 
 interface ChatListProps {
   user: UserData | null;
@@ -27,10 +28,16 @@ export default function ChatList({
         const detail = chatDetails[chat.chatId] || {
           members: [],
           messages: [],
+          chatMembers: [],
         };
         console.log(detail)
-        const { members, messages } = detail;
-        const latest = messages[messages.length - 1];
+        const { members, messages, chatMembers } = detail;
+        
+        // Sort messages to get the actual latest message
+        const sortedMessages = [...messages].sort(
+          (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
+        );
+        const latest = sortedMessages[sortedMessages.length - 1];
 
         // determine display name
         let displayName: string;
@@ -38,11 +45,19 @@ export default function ChatList({
           displayName = chat.name || "Group";
         } else {
           // one-on-one: find the other user
-          const other = members.find((m) => m.userId !== user?.userId);
+          const other = members.find((m) => String(m.userId) !== String(user?.userId));
           displayName = other?.name || "Unknown";
         }
 
         const isSelected = chat.chatId === selectedChatId;
+        
+        // Check if the latest message was sent by the current user
+        const isLastMessageByCurrentUser = Boolean(latest && user && String(latest.senderId) === String(user.userId));
+        
+        // Get the read status from the latest message (if it exists and was sent by current user)
+        const isLastMessageRead = isLastMessageByCurrentUser && latest 
+          ? isMessageRead(latest, sortedMessages, chatMembers, user?.userId || 0)
+          : false;
 
         return (
           <div key={chat.chatId}>
@@ -59,8 +74,9 @@ export default function ChatList({
                 lastMessageTime={
                   latest ? new Date(latest.sentAt).toLocaleTimeString() : ""
                 }
-                unreadCount={0}
-                isRead={false}
+                unreadCount={0} // You can implement this using chat.unreadCount if available
+                isRead={isLastMessageRead}
+                isLastMessageByCurrentUser={isLastMessageByCurrentUser}
               />
             </div>
             {idx !== chats.length - 1 && <Separator />}
