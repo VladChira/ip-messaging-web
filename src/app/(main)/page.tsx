@@ -61,7 +61,7 @@ export default function Home() {
             // Get user members (UserData objects)
             const { members: userMembers = [] }: { members: UserData[] } = await chats.getMembers(chat.chatId);
             
-            // Get chat members (ChatMember objects with read status) - this is the missing piece!
+            // Get chat members (ChatMember objects with read status)
             const token = Cookies.get("token");
             const chatMembersRes = await fetch(
               `https://c9server.go.ro/messaging-api/get-chat-members/${chat.chatId}`,
@@ -79,7 +79,7 @@ export default function Home() {
               {
                 members: userMembers,
                 messages,
-                chatMembers, // This was missing!
+                chatMembers,
               },
             ] as [string, ChatDetail];
           } catch (error) {

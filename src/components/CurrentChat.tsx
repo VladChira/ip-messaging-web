@@ -107,12 +107,35 @@ export function CurrentChatPanel({
           {sortedMessages.map((msg) => {
             const isSent = String(msg.senderId) === String(user?.userId);
 
-            // find the message author in members
+            // Find the message author in members
             const author = detail.members.find(
               (m) => String(m.userId) === String(msg.senderId)
             );
-            const fallbackInitials = author ? getInitials(author?.name) : "ERR";
             
+            // Get initials and sender name
+            let fallbackInitials = "?";
+            let senderName = "";
+            
+            if (author && author.name) {
+              fallbackInitials = getInitials(author.name);
+              senderName = author.name;
+            } else if (author && author.username) {
+              fallbackInitials = getInitials(author.username);
+              senderName = author.username;
+            } else if (isSent && user?.name) {
+              // If it's the current user's message and we can't find the author, use current user's initials
+              fallbackInitials = getInitials(user.name);
+              senderName = user.name;
+            } else if (isSent && user?.username) {
+              // Fallback to username if name not available
+              fallbackInitials = getInitials(user.username);
+              senderName = user.username;
+            } else {
+              // Last resort: use the first two characters of senderId
+              fallbackInitials = String(msg.senderId).slice(0, 2).toUpperCase();
+              senderName = `User ${msg.senderId}`;
+            }
+
             // Check if message is read (only for sent messages)
             const messageIsRead = isSent 
               ? isMessageRead(msg, sortedMessages, detail.chatMembers, user?.userId || 0)
@@ -126,6 +149,12 @@ export function CurrentChatPanel({
                 <ChatBubbleAvatar fallback={fallbackInitials} />
                 <ChatBubbleMessage variant={isSent ? "sent" : "received"}>
                   <div className="flex flex-col gap-1">
+                    {/* Add sender name for group chats on received messages */}
+                    {!isSent && chat.chatType === "group" && (
+                      <span className="text-xs font-semibold text-muted-foreground">
+                        {senderName}
+                      </span>
+                    )}
                     <span>{msg.text}</span>
                     {/* Show double ticks and timestamp for sent messages */}
                     {isSent && (
