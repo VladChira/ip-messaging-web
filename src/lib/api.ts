@@ -198,6 +198,14 @@ interface RegisterResponse {
  * Authentication functions
  */
 export const auth = {
+
+  /**
+ * Validate the JWT token stored in cookies
+ */
+  validateToken: async (): Promise<{ user: UserData, message: string }> => {
+    return await api.get('/messaging-api/validate-token');
+  },
+
   /**
    * Login user
    */
