@@ -4,7 +4,6 @@ import { Chat, UserData, ChatDetail } from "@/lib/api";
 import { ChatListItem } from "./ChatListItem";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
-import { isMessageRead } from "@/lib/chatUtils";
 
 interface ChatListProps {
   user: UserData | null;
@@ -56,9 +55,9 @@ export default function ChatList({
         );
         
         // Get the read status from the latest message (if it exists and was sent by current user)
-        const isLastMessageRead = isLastMessageByCurrentUser && latest 
-          ? isMessageRead(latest, sortedMessages, chatMembers, user?.userId || 0)
-          : false;
+        // const isLastMessageRead = isLastMessageByCurrentUser && latest 
+        //   ? isMessageRead(latest, sortedMessages, chatMembers, user?.userId || 0)
+        //   : false;
 
         // Get the sender name for group chats (only if not sent by current user)
         let lastMessageSenderName = "";
@@ -83,7 +82,7 @@ export default function ChatList({
                   latest ? new Date(latest.sentAt).toLocaleTimeString() : ""
                 }
                 unreadCount={0} // You can implement this using chat.unreadCount if available
-                isRead={isLastMessageRead}
+                isRead={false}
                 isLastMessageByCurrentUser={isLastMessageByCurrentUser}
                 lastMessageSenderName={lastMessageSenderName}
                 isGroupChat={chat.chatType === "group"}

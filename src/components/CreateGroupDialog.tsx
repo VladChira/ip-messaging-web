@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import Cookies from 'js-cookie';
-import { UserData, getCurrentUser } from "@/lib/api";
+import { UserData, chats, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
 
 interface CreateGroupDialogProps {
@@ -25,7 +25,7 @@ interface CreateGroupDialogProps {
 }
 
 export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
-  const [friends, setFriends] = useState<ChatAppUser[]>([]);
+  const [chatFriends, setFriends] = useState<ChatAppUser[]>([]);
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [groupName, setGroupName] = useState("");
@@ -54,22 +54,7 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
     const fetchUsers = async () => {
       if (!user?.userId) return;
       try {
-        const response = await fetch(
-          "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-          user?.userId.toString(),
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await friends.getFriends();
         setFriends(data.friends || []);
       } catch (err) {
         console.error("Failed to fetch friends:", err);
@@ -106,27 +91,7 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
     setIsCreating(true);
 
     try {
-      const response = await fetch(
-        "https://c9server.go.ro/messaging-api/create-chat",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${Cookies.get("token")}`,
-          },
-          body: JSON.stringify({
-            chatType: "group",
-            name: groupName,
-            memberIds: selectedFriends,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`API responded with status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await chats.createChat("group", groupName, selectedFriends);
       console.log("Created group chat:", data);
       
       // Close the dialog on success
@@ -144,7 +109,7 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
     }
   };
 
-  const filteredFriends = friends.filter(friend => 
+  const filteredFriends = chatFriends.filter(friend => 
     friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     friend.username.toLowerCase().includes(searchQuery.toLowerCase())
   );

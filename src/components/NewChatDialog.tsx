@@ -15,11 +15,11 @@ import { Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import Cookies from 'js-cookie';
-import { UserData, getCurrentUser } from "@/lib/api";
+import { UserData, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
 
 export function NewChatDialog() {
-  const [friends, setFriends] = useState<ChatAppUser[]>([]);
+  const [userFriends, setFriends] = useState<ChatAppUser[]>([]);
   const [open, setOpen] = useState(false);
 
   const [user, setUser] = useState<UserData | null>(null);
@@ -34,22 +34,7 @@ export function NewChatDialog() {
     const fetchUsers = async () => {
       if (!user?.userId) return;
       try {
-        const response = await fetch(
-          "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-          user?.userId.toString(),
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const data = await friends.getFriends();
         setFriends(data.friends || []);
       } catch (err) {
         console.error("Failed to fetch friends:", err);
@@ -73,7 +58,7 @@ export function NewChatDialog() {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Plus className="h-4 w-4" />
-          New
+          New Chat
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -85,7 +70,7 @@ export function NewChatDialog() {
         </DialogHeader>
         <ScrollArea className="mt-4 max-h-[60vh]">
           <div className="space-y-2 pr-4">
-            {friends.map((user) => (
+            {userFriends.map((user) => (
               <div
                 key={user.userId}
                 className="flex items-center justify-between p-3 rounded-md hover:bg-muted"

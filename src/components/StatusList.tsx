@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { StatusListItem } from "./StatusListItem";
 import { ChatAppUser, getInitials } from "@/lib/constants";
 import { AlertCircle } from "lucide-react";
-import { getCurrentUser, UserData } from "@/lib/api";
+import { friends, getCurrentUser, UserData } from "@/lib/api";
 
 import Cookies from 'js-cookie';
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
@@ -29,22 +29,8 @@ export function StatusList() {
       if (!user?.userId) return;
       try {
         setLoading(true);
-        const response = await fetch(
-          "https://c9server.go.ro/messaging-api/get-friends-by-user-id/" +
-          user?.userId.toString(),
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        
+        const data = await friends.getFriends();
         setUsers(data.friends || []);
         setError(null);
       } catch (err) {

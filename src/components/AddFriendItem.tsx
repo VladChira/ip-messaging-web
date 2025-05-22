@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/constants";
 import { toast } from "sonner"; // Import if you've added Sonner
 import Cookies from "js-cookie";
-import { getCurrentUser } from "@/lib/api";
+import { friends, getCurrentUser } from "@/lib/api";
 
 interface AddFriendListItemProps {
     userId: number;
@@ -35,33 +35,17 @@ export function AddFriendListItem({
         try {
             setSending(true);
             setError(null);
-            
+
             const currentUser = getCurrentUser();
             if (!currentUser) {
                 throw new Error("You must be logged in to send friend requests");
             }
-            
-            // Call the real API endpoint
-            const response = await fetch("https://c9server.go.ro/messaging-api/send-friend-request", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${Cookies.get("token")}`,
-                },
-                body: JSON.stringify({ 
-                    senderId: currentUser.userId, 
-                    receiverId: userId 
-                }),
-            });
-            
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Failed to send friend request");
-            }
-            
+
+            await friends.sendFriendRequest(currentUser.userId, userId);
+
             setIsRequestSent(true);
             onRequestSent?.(userId);
-            
+
             // Show a notification
             toast?.success("Friend request sent", {
                 description: `A friend request has been sent to ${name}.`
@@ -69,7 +53,7 @@ export function AddFriendListItem({
         } catch (err) {
             console.error("Failed to send friend request:", err);
             setError(err instanceof Error ? err.message : "Failed to send request");
-            
+
             toast?.error("Failed to send request", {
                 description: err instanceof Error ? err.message : "Please try again."
             });

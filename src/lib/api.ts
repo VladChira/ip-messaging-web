@@ -26,11 +26,12 @@ export interface Message {
   senderId: number,
   text: string,
   sentAt: string,
+  seenBy: number[]
 }
 
 export interface ChatMember {
   userId: number,
-  chatId: string,  // Fixed typo: was "charId"
+  chatId: string,
   joinedAt: string,
   lastReadMessageId?: string,
   lastReadAt?: string
@@ -44,6 +45,7 @@ export type ChatDetail = {
 
 // Base URL for all API requests
 const API_BASE_URL = "https://c9server.go.ro/messaging-api";
+// const API_BASE_URL = "http://localhost:5000/messaging-api";
 
 /**
  * Get the current logged-in user from localStorage
@@ -297,15 +299,26 @@ export interface UserSearchResult {
   requestSent: boolean;
 }
 
-export interface FriendRequestsResponse {
-  friendRequests: {
+// Define proper interface for API response
+interface FriendRequestAPIResponse {
+  incoming_pending: Array<{
     requestId: number;
-    userId: number;
-    name: string;
-    username: string;
+    senderId: number;
+    receiverId: number;
+    status: string;
     createdAt: string;
-  }[];
+    senderName: string;  // Now these will be provided by the backend
+    senderUsername: string;
+  }>;
+  outgoing_pending: Array<{
+    requestId: number;
+    senderId: number;
+    receiverId: number;
+    status: string;
+    createdAt: string;
+  }>;
 }
+
 
 // Friend request functions
 export const friends = {
@@ -322,28 +335,44 @@ export const friends = {
    * Send a friend request to another user
    */
   sendFriendRequest: async (
-    recipientId: number
+    senderId: number,
+    receiverId: number
   ): Promise<{ message: string }> => {
-    return api.post("/send-friend-request", { recipient_id: recipientId });
+    return api.post("/send-friend-request", { senderId: senderId, receiverId: receiverId });
   },
 
   /**
    * Get pending friend requests for the current user
    */
-  getFriendRequests: async (): Promise<FriendRequestsResponse> => {
-    return api.get("/get-friend-requests");
+  getFriendRequests: async (
+    userId: number
+  ): Promise<FriendRequestAPIResponse> => {
+    return api.get(`/get-friend-requests/${userId}`);
   },
 
   /**
-   * Accept or reject a friend request
+   * Accept a friend request
    */
-  respondToFriendRequest: async (
+  acceptFriendRequest: async (
     requestId: number,
-    action: "accept" | "reject"
+    accepterId: number
   ): Promise<{ message: string }> => {
-    return api.post("/respond-to-friend-request", {
+    return api.post("/accept-friend-request", {
       request_id: requestId,
-      action,
+      accepterId: accepterId,
+    });
+  },
+
+  /**
+   * Reject a friend request
+   */
+  rejectFriendRequest: async (
+    requestId: number,
+    rejecterId: number
+  ): Promise<{ message: string }> => {
+    return api.post("/reject-friend-request", {
+      request_id: requestId,
+      rejecterId: rejecterId,
     });
   },
 
@@ -383,10 +412,10 @@ export const chats = {
   },
 
   /**
-   * Mark messages as read up to a specific message ID
+   * Get members for a specific chat in form of ChatUser
    */
-  markAsRead: async (chatId: string, messageId: string): Promise<{ success: boolean }> => {
-    return api.post("/mark-as-read", { chatId, messageId });
+  getChatMembers: async (chatId: string): Promise<{ members: ChatMember[] }> => {
+    return api.get(`/get-chat-members/${chatId}`);
   },
 
   /**
@@ -394,5 +423,13 @@ export const chats = {
    */
   getUnreadCounts: async (): Promise<{ unreadCounts: Record<string, number>, totalUnread: number }> => {
     return api.get("/unread-counts");
+  },
+
+  createChat: async (
+    chatType: string,
+    name: string,
+    memberIds: number[]
+  ): Promise<{ message: string }> => {
+    return api.post("/create-chat", { chatType: chatType, name: name, memberIds: memberIds });
   },
 };

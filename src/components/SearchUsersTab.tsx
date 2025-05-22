@@ -7,6 +7,7 @@ import { AddFriendListItem } from "@/components/AddFriendItem";
 import { Separator } from "@/components/ui/separator";
 import { Search, AlertCircle } from "lucide-react";
 import Cookies from "js-cookie";
+import { friends } from "@/lib/api";
 
 interface UserSearchResult {
   userId: number;
@@ -43,21 +44,7 @@ const SearchUsersTab = () => {
         setLoading(true);
         setError(null);
         
-        // Call the real API endpoint
-        const response = await fetch(
-          `https://c9server.go.ro/messaging-api/search-users?query=${encodeURIComponent(debouncedQuery)}`,
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          }
-        );
-        
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        const data = await friends.searchUsers(encodeURIComponent(debouncedQuery));
         setUsers(data.users || []);
       } catch (err) {
         console.error("Failed to search users:", err);

@@ -9,7 +9,7 @@ import { AlertCircle, UserPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
-import { getCurrentUser } from "@/lib/api";
+import { friends, getCurrentUser } from "@/lib/api";
 
 interface FriendRequest {
   requestId: number;
@@ -17,26 +17,6 @@ interface FriendRequest {
   name: string;
   username: string;
   createdAt: string;
-}
-
-// Define proper interface for API response
-interface FriendRequestAPIResponse {
-  incoming_pending: Array<{
-    requestId: number;
-    senderId: number;
-    receiverId: number;
-    status: string;
-    createdAt: string;
-    senderName: string;  // Now these will be provided by the backend
-    senderUsername: string;
-  }>;
-  outgoing_pending: Array<{
-    requestId: number;
-    senderId: number;
-    receiverId: number;
-    status: string;
-    createdAt: string;
-  }>;
 }
 
 const FriendRequestsTab = () => {
@@ -53,22 +33,8 @@ const FriendRequestsTab = () => {
         if (!currentUser) {
           throw new Error("You must be logged in to view friend requests");
         }
-        
-        // Call the real API endpoint
-        const response = await fetch(
-          `https://c9server.go.ro/messaging-api/get-friend-requests/${currentUser.userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${Cookies.get("token")}`,
-            },
-          }
-        );
-        
-        if (!response.ok) {
-          throw new Error(`API responded with status: ${response.status}`);
-        }
-        
-        const data = await response.json() as FriendRequestAPIResponse;
+
+        const data = await friends.getFriendRequests(currentUser.userId);
         
         // Process incoming requests
         const incomingRequests = data.incoming_pending.map((req) => {
@@ -102,27 +68,12 @@ const FriendRequestsTab = () => {
         throw new Error("You must be logged in to respond to friend requests");
       }
       
-      const endpoint = action === 'accept' ? 
-        'accept-friend-request' : 'reject-friend-request';
-      
-      // Call the real API endpoint
-      const response = await fetch(`https://c9server.go.ro/messaging-api/${endpoint}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${Cookies.get("token")}`,
-        },
-        body: JSON.stringify({ 
-          requestId: requestId, 
-          [action === 'accept' ? 'accepterId' : 'rejecterId']: currentUser.userId
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${action} friend request`);
+      if (action === 'accept') {
+        await friends.acceptFriendRequest(requestId, currentUser.userId);
+      } else {
+        await friends.rejectFriendRequest(requestId, currentUser.userId);
       }
-      
+
       // Remove the request from the list
       setRequests((prevRequests) =>
         prevRequests.filter((request) => request.requestId !== requestId)

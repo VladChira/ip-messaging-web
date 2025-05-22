@@ -48,9 +48,6 @@ export default function Home() {
       const { chats: fetchedChats } = await chats.getChats();
       setChatsList(fetchedChats);
 
-      // -- Fetch all users once --
-      const { users: allUsers }: { users: UserData[] } = await api.get("/users");
-
       // -- For each chat, fetch messages, members, and chatMembers in parallel --
       const entries = await Promise.all(
         fetchedChats.map(async (chat: Chat) => {
@@ -61,19 +58,7 @@ export default function Home() {
             // Get user members (UserData objects)
             const { members: userMembers = [] }: { members: UserData[] } = await chats.getMembers(chat.chatId);
             
-            // Get chat members (ChatMember objects with read status)
-            const token = Cookies.get("token");
-            const chatMembersRes = await fetch(
-              `https://c9server.go.ro/messaging-api/get-chat-members/${chat.chatId}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            
-            let chatMembers: ChatMember[] = [];
-            if (chatMembersRes.ok) {
-              const { members: rawChatMembers } = await chatMembersRes.json();
-              chatMembers = rawChatMembers || [];
-            }
-
+            const { members: chatMembers = [] }: { members: ChatMember[] } = await chats.getChatMembers(chat.chatId);
             return [
               chat.chatId,
               {
