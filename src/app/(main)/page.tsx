@@ -22,6 +22,8 @@ import {
   sendMessage,
   onConnect,
   onDisconnect,
+  sendMarkAsRead,
+  onMarkAsRead,
 } from "@/lib/socket";
 
 export default function Home() {
@@ -32,6 +34,17 @@ export default function Home() {
   );
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+
+  // helper: sort chats by latest message timestamp
+  const sortChatsByLatest = useCallback((chatsArr: Chat[], details: Record<string, ChatDetail>) => {
+    return [...chatsArr].sort((a, b) => {
+      const aMsgs = details[a.chatId]?.messages;
+      const bMsgs = details[b.chatId]?.messages;
+      const aLatest = aMsgs?.length ? new Date(aMsgs[aMsgs.length - 1].sentAt).getTime() : 0;
+      const bLatest = bMsgs?.length ? new Date(bMsgs[bMsgs.length - 1].sentAt).getTime() : 0;
+      return bLatest - aLatest;
+    });
+  }, []);
 
   // Load current user once
   useEffect(() => {
@@ -54,10 +67,10 @@ export default function Home() {
           try {
             // Get messages
             const { messages = [] }: { messages: Message[] } = await chats.getMessages(chat.chatId);
-            
+
             // Get user members (UserData objects)
             const { members: userMembers = [] }: { members: UserData[] } = await chats.getMembers(chat.chatId);
-            
+
             const { members: chatMembers = [] }: { members: ChatMember[] } = await chats.getChatMembers(chat.chatId);
             return [
               chat.chatId,
@@ -80,15 +93,19 @@ export default function Home() {
           }
         })
       );
-
       // build map and set state
-      setChatDetails(Object.fromEntries(entries));
+      const detailsMap = Object.fromEntries(entries);
+
+      setChatDetails(detailsMap);
+
+      setChatsList(sortChatsByLatest(fetchedChats, detailsMap));
+
     } catch (err) {
       console.error("Error loading chat data:", err);
       setChatsList([]);
       setChatDetails({});
     }
-  }, [user?.userId]);
+  }, [user?.userId, sortChatsByLatest]);
 
   // Function to refresh chats after creating a new group
   const refreshChats = useCallback(() => {
@@ -113,7 +130,6 @@ export default function Home() {
 
     // subscribe to incoming events
     onMessage((msg: any) => {
-      console.log("Received new message:", msg);
       setChatDetails(prev => {
         const detail = prev[msg.chatId] ?? { members: [], messages: [], chatMembers: [] };
         return {
@@ -124,6 +140,20 @@ export default function Home() {
           },
         };
       });
+      // also re-sort chat list after incoming message
+      setChatsList(prev => sortChatsByLatest(prev, {
+        ...chatDetails,
+        [msg.chatId]: {
+          ...chatDetails[msg.chatId],
+          messages: [...(chatDetails[msg.chatId]?.messages || []), msg]
+        }
+      }));
+
+      // if this message is in the chat the user currently has open, tell server it’s read
+      if (msg.chatId === selectedChatId) {
+        console.log('sending a mark as read')
+        sendMarkAsRead(msg.chatId, msg.messageId);
+      }
     });
     onTyping((data: any) => {
       /* console.log already in socket.js */
@@ -132,10 +162,38 @@ export default function Home() {
       /* console.log already in socket.js */
     });
 
+    onMarkAsRead((data: { chatId: string; messageId: string; userId: number }) => {
+      setChatDetails(prev => {
+        const detail = prev[data.chatId];
+        if (!detail) return prev;
+
+        const updated = detail.messages.map(msg => {
+          if (msg.messageId === data.messageId) {
+            // only add if not already present
+            if (!msg.seenBy.includes(data.userId)) {
+              return {
+                ...msg,
+                seenBy: [...msg.seenBy, data.userId],
+              };
+            }
+          }
+          return msg;
+        });
+
+        return {
+          ...prev,
+          [data.chatId]: {
+            ...detail,
+            messages: updated,
+          },
+        };
+      });
+    });
+
     return () => {
       disconnectSocket();
     };
-  }, [user]);
+  }, [user, selectedChatId, chatDetails, sortChatsByLatest]);
 
   // 2️⃣ join / leave rooms when selection changes
   useEffect(() => {
@@ -150,10 +208,15 @@ export default function Home() {
   function handleSendMessage(chatId: string, text: string): void {
     console.log("Sending message:", text, "to chatID:", chatId);
     sendMessage(chatId, text);
+
+    // bump this chat to the top immediately
+    setChatsList(prev =>
+      sortChatsByLatest(prev, chatDetails)
+    );
   }
 
   return (
-    <div className="flex h-full w-full p-6">
+    <div className="flex h-screen w-full p-6">
       <div className="flex flex-col max-w-md w-full space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chats</h1>
@@ -181,7 +244,7 @@ export default function Home() {
           onSelectChat={setSelectedChatId}
         />
       </div>
-      <div className="flex-1 ml-6 rounded-md bg-muted/10">
+      <div className="flex flex-col flex-1 ml-6 rounded-md bg-muted/10 min-h-0">
         {selectedChatId != null && chatDetails[selectedChatId] && (
           <CurrentChatPanel
             user={user}

@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/lib/constants";
 import { toast } from "sonner"; // Import if you've added Sonner
-import Cookies from "js-cookie";
 import { friends, getCurrentUser } from "@/lib/api";
 
 interface AddFriendListItemProps {

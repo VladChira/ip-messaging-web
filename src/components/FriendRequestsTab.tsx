@@ -8,7 +8,6 @@ import { getInitials } from "@/lib/constants";
 import { AlertCircle, UserPlus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import Cookies from "js-cookie";
 import { friends, getCurrentUser } from "@/lib/api";
 
 interface FriendRequest {

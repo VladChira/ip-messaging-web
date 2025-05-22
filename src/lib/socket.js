@@ -3,9 +3,13 @@ import { io } from "socket.io-client";
 
 let socket = null;
 
+// Base URL for all websocket requests
+// const WS_BASE_URL = "https://c9server.go.ro";
+const WS_BASE_URL = "http://localhost:5000";
+
 export function connectSocket(token, userId) {
   if (!socket) {
-    socket = io("https://c9server.go.ro", {
+    socket = io(WS_BASE_URL, {
       path: "/messaging-api/socket.io",     // must match your server’s path
       transports: ["polling", "websocket"],  // allow polling first, then upgrade
       forceNew: true,                        // create a new Manager per tab
@@ -82,8 +86,22 @@ export function onPresence(cb) {
   }
 }
 
+export function onMarkAsRead(cb) {
+  if (socket) {
+    socket.on("mark_as_read", (data) => {
+      console.log("mark_as_read:", data);
+      cb(data);
+    });
+  }
+}
+
 export function sendMessage(chatId, text, tempId = null) {
   if (socket) {
     socket.emit("send_message", { chatId, text, tempId });
   }
 }
+
+export function sendMarkAsRead(chatId, messageId) {
+  socket.emit("mark_as_read", { chatId, messageId });
+}
+

@@ -16,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import Cookies from 'js-cookie';
 import { UserData, chats, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
 

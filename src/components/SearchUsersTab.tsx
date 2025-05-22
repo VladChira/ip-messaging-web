@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { AddFriendListItem } from "@/components/AddFriendItem";
 import { Separator } from "@/components/ui/separator";
 import { Search, AlertCircle } from "lucide-react";
-import Cookies from "js-cookie";
 import { friends } from "@/lib/api";
 
 interface UserSearchResult {

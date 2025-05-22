@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, KeyboardEvent, useEffect } from "react";
+import { useState, KeyboardEvent } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
   ChatBubbleMessage,
 } from "./ui/chat/chat-bubble";
 
-import { Chat, UserData, Message, ChatMember, chats } from "@/lib/api";
+import { Chat, UserData, Message, ChatMember } from "@/lib/api";
 import { getInitials } from "@/lib/constants";
 
 interface ChatDetail {
@@ -63,14 +63,14 @@ export function CurrentChatPanel({
   const messages = detail.messages
 
   function isSeenByAll(msg: Message, members: ChatMember[]) {
-    // console.log(members);
+    // console.log(msg);
     return members
       .filter(m => m.userId !== msg.senderId)
       .every(m => msg.seenBy.includes(m.userId));
   }
 
   return (
-    <div className="flex flex-col h-full w-full">
+    <div className="flex flex-col h-full w-full min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
@@ -86,7 +86,7 @@ export function CurrentChatPanel({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 min-h-0">
         <ChatMessageList>
           {messages.map((msg) => {
             // console.log(msg);
@@ -145,7 +145,7 @@ export function CurrentChatPanel({
                     {isSent && (
                       <div className="flex items-center justify-end gap-1 text-xs text-muted-foreground opacity-70">
                         <span>{new Date(msg.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        <CheckCheck className={`size-3 ${messageIsRead ? 'text-blue-500' : 'text-gray-400'}`} />
+                        <CheckCheck className={`size-4 ${messageIsRead ? 'text-blue-500' : 'text-gray-400'}`} />
                       </div>
                     )}
                   </div>

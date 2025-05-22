@@ -29,7 +29,7 @@ export default function ChatList({
           messages: [],
           chatMembers: [],
         };
-        const { members, messages, chatMembers } = detail;
+        const { members, messages } = detail;
         
         // Sort messages to get the actual latest message
         const sortedMessages = [...messages].sort(

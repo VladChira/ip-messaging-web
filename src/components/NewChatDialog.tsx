@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import Cookies from 'js-cookie';
 import { UserData, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
 

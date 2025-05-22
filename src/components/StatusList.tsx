@@ -8,7 +8,6 @@ import { ChatAppUser, getInitials } from "@/lib/constants";
 import { AlertCircle } from "lucide-react";
 import { friends, getCurrentUser, UserData } from "@/lib/api";
 
-import Cookies from 'js-cookie';
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export function StatusList() {
