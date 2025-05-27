@@ -44,8 +44,8 @@ export type ChatDetail = {
 };
 
 // Base URL for all API requests
-const API_BASE_URL = "https://c9server.go.ro/messaging-api";
-// const API_BASE_URL = "http://localhost:5000/messaging-api";
+// const API_BASE_URL = "https://c9server.go.ro/messaging-api";
+const API_BASE_URL = "http://localhost:5000/messaging-api";
 
 /**
  * Get the current logged-in user from localStorage

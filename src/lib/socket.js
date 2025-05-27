@@ -4,8 +4,8 @@ import { io } from "socket.io-client";
 let socket = null;
 
 // Base URL for all websocket requests
-const WS_BASE_URL = "https://c9server.go.ro";
-// const WS_BASE_URL = "http://localhost:5000";
+// const WS_BASE_URL = "https://c9server.go.ro";
+const WS_BASE_URL = "http://localhost:5000";
 
 export function connectSocket(token, userId) {
   if (!socket) {

@@ -17,7 +17,7 @@ import {
   api,
   ChatMember,
 } from "@/lib/api";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 import Cookies from "js-cookie";
 import {
@@ -35,6 +35,9 @@ import {
   onMarkAsRead,
   onRefresh,
 } from "@/lib/socket";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CheckCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -179,6 +182,8 @@ export default function Home() {
       );
 
       // if this message is in the chat the user currently has open, tell server it’s read
+      console.log(msg.chatId);
+      console.log(selectedChatId);
       if (msg.chatId === selectedChatId) {
         console.log("sending a mark as read");
         sendMarkAsRead(msg.chatId, msg.messageId);
@@ -232,17 +237,49 @@ export default function Home() {
     return () => {
       disconnectSocket();
     };
-  }, [user, selectedChatId, chatDetails, sortChatsByLatest, fetchAll]);
+  }, [user, selectedChatId]);
 
-  // 2️⃣ join / leave rooms when selection changes
+  // 1️⃣ JOIN / LEAVE: only depends on selectedChatId
   useEffect(() => {
-    if (selectedChatId) {
-      joinChat(selectedChatId);
-    }
+    if (!selectedChatId) return;
+
+    joinChat(selectedChatId);
     return () => {
-      if (selectedChatId) leaveChat(selectedChatId);
+      leaveChat(selectedChatId);
     };
   }, [selectedChatId]);
+
+  // 2️⃣ INITIAL READ‐ALL: only run once per chat open
+  const initialReadRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!selectedChatId) return;
+    if (!user) return;
+    if (initialReadRef.current.has(selectedChatId)) return;
+
+    const detail = chatDetails[selectedChatId];
+    detail?.messages.forEach((msg) => {
+      if (!msg.seenBy.includes(user.userId)) {
+        sendMarkAsRead(selectedChatId, msg.messageId);
+      }
+    });
+
+    initialReadRef.current.add(selectedChatId);
+  }, [selectedChatId, chatDetails]);
+
+  // 3️⃣ CONTINUOUS READ for incoming messages
+  useEffect(() => {
+    if (!selectedChatId) return;
+    if (!user) return;
+    const detail = chatDetails[selectedChatId];
+
+    // whenever a NEW message arrives with no seenBy, mark it
+    detail?.messages.forEach((msg) => {
+      if (msg.senderId !== user?.userId && !msg.seenBy.includes(user.userId)) {
+        sendMarkAsRead(selectedChatId, msg.messageId);
+      }
+    });
+  }, [selectedChatId, chatDetails]);
+
 
   function handleSendMessage(chatId: string, text: string): void {
     console.log("Sending message:", text, "to chatID:", chatId);
@@ -261,14 +298,35 @@ export default function Home() {
             `}
       >
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Chats</h1>
-          <span
-            className={`
-              h-3 w-3 rounded-full
-              ${isSocketConnected ? "bg-green-500" : "bg-red-500"}
-            `}
-            title={isSocketConnected ? "Connected" : "Disconnected"}
-          />
+          {/* TITLE + STATUS */}
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold">Chats</h1>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={isSocketConnected ? "outline" : "destructive"}
+                  className="gap-1"
+                >
+                  {isSocketConnected ? (
+                    <CheckCircle className="size-5 text-green-500" />
+                  ) : (
+                    <XCircle className="size-5 text-red-500" />
+                  )}
+                  <span className="text-sm">
+                    {isSocketConnected ? "Online" : "Offline"}
+                  </span>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {isSocketConnected
+                  ? "Connected to the chat server"
+                  : "You are disconnected"}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* ACTION BUTTONS */}
           <div className="flex gap-2">
             <CreateGroupDialog onChatCreated={refreshChats} />
             <NewChatDialog />

@@ -12,4 +12,5 @@ const nextConfig: NextConfig = {
   trailingSlash: true
 };
 
-export default withPWA(nextConfig);
+// export default withPWA(nextConfig);
+export default nextConfig;

@@ -122,7 +122,7 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Users className="h-4 w-4" />
-          Create group
+          New group
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
