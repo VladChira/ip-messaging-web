@@ -253,8 +253,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-full p-6">
-      <div className="flex flex-col max-w-md w-full space-y-4">
+    <div className="flex h-screen w-full p-6 md:flex-row">
+      <div
+        className={`
+              ${selectedChatId ? "hidden" : "flex"}
+              md:flex flex-col max-w-md w-full space-y-4
+            `}
+      >
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Chats</h1>
           <span
@@ -281,14 +286,28 @@ export default function Home() {
           onSelectChat={setSelectedChatId}
         />
       </div>
-      <div className="flex flex-col flex-1 ml-6 rounded-md bg-muted/10 min-h-0">
-        {selectedChatId != null && chatDetails[selectedChatId] && (
-          <CurrentChatPanel
-            user={user}
-            chat={chatsList.find((c) => c.chatId === selectedChatId)!}
-            detail={chatDetails[selectedChatId]!}
-            onSendMessage={handleSendMessage}
-          />
+      <div
+        className={`
+    ${!selectedChatId ? "hidden" : "flex"}
+    md:flex flex-col flex-1 ml-6 rounded-md bg-muted/10 min-h-0
+  `}
+      >
+        {selectedChatId && (
+          <>
+            {/* ← Back button only on sm: */}
+            <button
+              className="md:hidden mb-2 text-blue-500"
+              onClick={() => setSelectedChatId(null)}
+            >
+              ← Back
+            </button>
+            <CurrentChatPanel
+              user={user}
+              chat={chatsList.find((c) => c.chatId === selectedChatId)!}
+              detail={chatDetails[selectedChatId]!}
+              onSendMessage={handleSendMessage}
+            />
+          </>
         )}
       </div>
     </div>

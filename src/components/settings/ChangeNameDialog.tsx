@@ -75,7 +75,7 @@ export function ChangeNameDialog() {
                 <DialogHeader>
                     <DialogTitle>Edit name</DialogTitle>
                     <DialogDescription>
-                        Changes will apply immediately. You will need to sign in again.
+                        Changes will apply immediately.
                         {error && (
                             <div className="bg-red-50 p-3 rounded-md flex items-start gap-2 mt-3">
                                 <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
