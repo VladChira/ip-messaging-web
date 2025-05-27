@@ -1,0 +1,17 @@
+{
+    "name": "Chat App",
+    "short_name": "Chat App",
+    "description": "Chat with your friends, anytime, anywhere",
+    "start_url": "/messaging/",
+    "scope": "/messaging/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0f172a",
+    "icons": [
+        {
+            "src": "/messaging/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
