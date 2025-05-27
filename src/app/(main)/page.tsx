@@ -289,7 +289,7 @@ export default function Home() {
       <div
         className={`
     ${!selectedChatId ? "hidden" : "flex"}
-    md:flex flex-col flex-1 ml-6 rounded-md bg-muted/10 min-h-0
+    md:flex flex-col flex-1 ml-6 rounded-md bg-muted/10 min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom))]
   `}
       >
         {selectedChatId && (
