@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { UserData, chats, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
+import { sendRefresh } from "@/lib/socket";
 
 export function NewChatDialog() {
   const [userFriends, setFriends] = useState<ChatAppUser[]>([]);
@@ -51,6 +52,7 @@ export function NewChatDialog() {
     try {
       const data = await chats.createChat("one_on_one", "test-one", [userId]);
       console.log("Created one on one chat:", data);
+      sendRefresh(data.chat.chatId);
     } catch(err) {
       console.log("Failed to create one on one chat", err);
     }

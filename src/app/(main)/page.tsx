@@ -7,7 +7,16 @@ import { CurrentChatPanel } from "@/components/CurrentChat";
 import { NewChatDialog } from "@/components/NewChatDialog";
 import { CreateGroupDialog } from "@/components/CreateGroupDialog";
 import { Input } from "@/components/ui/input";
-import { UserData, Message, Chat, getCurrentUser, ChatDetail, chats, api, ChatMember } from "@/lib/api";
+import {
+  UserData,
+  Message,
+  Chat,
+  getCurrentUser,
+  ChatDetail,
+  chats,
+  api,
+  ChatMember,
+} from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 
 import Cookies from "js-cookie";
@@ -24,6 +33,7 @@ import {
   onDisconnect,
   sendMarkAsRead,
   onMarkAsRead,
+  onRefresh,
 } from "@/lib/socket";
 
 export default function Home() {
@@ -36,15 +46,22 @@ export default function Home() {
   const [isSocketConnected, setIsSocketConnected] = useState(false);
 
   // helper: sort chats by latest message timestamp
-  const sortChatsByLatest = useCallback((chatsArr: Chat[], details: Record<string, ChatDetail>) => {
-    return [...chatsArr].sort((a, b) => {
-      const aMsgs = details[a.chatId]?.messages;
-      const bMsgs = details[b.chatId]?.messages;
-      const aLatest = aMsgs?.length ? new Date(aMsgs[aMsgs.length - 1].sentAt).getTime() : 0;
-      const bLatest = bMsgs?.length ? new Date(bMsgs[bMsgs.length - 1].sentAt).getTime() : 0;
-      return bLatest - aLatest;
-    });
-  }, []);
+  const sortChatsByLatest = useCallback(
+    (chatsArr: Chat[], details: Record<string, ChatDetail>) => {
+      return [...chatsArr].sort((a, b) => {
+        const aMsgs = details[a.chatId]?.messages;
+        const bMsgs = details[b.chatId]?.messages;
+        const aLatest = aMsgs?.length
+          ? new Date(aMsgs[aMsgs.length - 1].sentAt).getTime()
+          : 0;
+        const bLatest = bMsgs?.length
+          ? new Date(bMsgs[bMsgs.length - 1].sentAt).getTime()
+          : 0;
+        return bLatest - aLatest;
+      });
+    },
+    []
+  );
 
   // Load current user once
   useEffect(() => {
@@ -59,7 +76,7 @@ export default function Home() {
     try {
       // -- Fetch chats using API function --
       const { chats: fetchedChats } = await chats.getChats();
-      console.log(fetchedChats)
+      console.log(fetchedChats);
       setChatsList(fetchedChats);
 
       // -- For each chat, fetch messages, members, and chatMembers in parallel --
@@ -67,12 +84,15 @@ export default function Home() {
         fetchedChats.map(async (chat: Chat) => {
           try {
             // Get messages
-            const { messages = [] }: { messages: Message[] } = await chats.getMessages(chat.chatId);
+            const { messages = [] }: { messages: Message[] } =
+              await chats.getMessages(chat.chatId);
 
             // Get user members (UserData objects)
-            const { members: userMembers = [] }: { members: UserData[] } = await chats.getMembers(chat.chatId);
+            const { members: userMembers = [] }: { members: UserData[] } =
+              await chats.getMembers(chat.chatId);
 
-            const { members: chatMembers = [] }: { members: ChatMember[] } = await chats.getChatMembers(chat.chatId);
+            const { members: chatMembers = [] }: { members: ChatMember[] } =
+              await chats.getChatMembers(chat.chatId);
             return [
               chat.chatId,
               {
@@ -82,7 +102,10 @@ export default function Home() {
               },
             ] as [string, ChatDetail];
           } catch (error) {
-            console.error(`Error fetching details for chat ${chat.chatId}:`, error);
+            console.error(
+              `Error fetching details for chat ${chat.chatId}:`,
+              error
+            );
             return [
               chat.chatId,
               {
@@ -100,7 +123,6 @@ export default function Home() {
       setChatDetails(detailsMap);
 
       setChatsList(sortChatsByLatest(fetchedChats, detailsMap));
-
     } catch (err) {
       console.error("Error loading chat data:", err);
       setChatsList([]);
@@ -131,8 +153,12 @@ export default function Home() {
 
     // subscribe to incoming events
     onMessage((msg: any) => {
-      setChatDetails(prev => {
-        const detail = prev[msg.chatId] ?? { members: [], messages: [], chatMembers: [] };
+      setChatDetails((prev) => {
+        const detail = prev[msg.chatId] ?? {
+          members: [],
+          messages: [],
+          chatMembers: [],
+        };
         return {
           ...prev,
           [msg.chatId]: {
@@ -142,17 +168,26 @@ export default function Home() {
         };
       });
       // also re-sort chat list after incoming message
-      setChatsList(prev => sortChatsByLatest(prev, {
-        ...chatDetails,
-        [msg.chatId]: {
-          ...chatDetails[msg.chatId],
-          messages: [...(chatDetails[msg.chatId]?.messages || []), msg]
-        }
-      }));
+      setChatsList((prev) =>
+        sortChatsByLatest(prev, {
+          ...chatDetails,
+          [msg.chatId]: {
+            ...chatDetails[msg.chatId],
+            messages: [...(chatDetails[msg.chatId]?.messages || []), msg],
+          },
+        })
+      );
+
+      // ▶️ subscribe to refresh
+      onRefresh(() => {
+        // you'll already have fetchAll() in scope
+        console.log("refetching all chats & messages…");
+        fetchAll();
+      });
 
       // if this message is in the chat the user currently has open, tell server it’s read
       if (msg.chatId === selectedChatId) {
-        console.log('sending a mark as read')
+        console.log("sending a mark as read");
         sendMarkAsRead(msg.chatId, msg.messageId);
       }
     });
@@ -163,38 +198,40 @@ export default function Home() {
       /* console.log already in socket.js */
     });
 
-    onMarkAsRead((data: { chatId: string; messageId: string; userId: number }) => {
-      setChatDetails(prev => {
-        const detail = prev[data.chatId];
-        if (!detail) return prev;
+    onMarkAsRead(
+      (data: { chatId: string; messageId: string; userId: number }) => {
+        setChatDetails((prev) => {
+          const detail = prev[data.chatId];
+          if (!detail) return prev;
 
-        const updated = detail.messages.map(msg => {
-          if (msg.messageId === data.messageId) {
-            // only add if not already present
-            if (!msg.seenBy.includes(data.userId)) {
-              return {
-                ...msg,
-                seenBy: [...msg.seenBy, data.userId],
-              };
+          const updated = detail.messages.map((msg) => {
+            if (msg.messageId === data.messageId) {
+              // only add if not already present
+              if (!msg.seenBy.includes(data.userId)) {
+                return {
+                  ...msg,
+                  seenBy: [...msg.seenBy, data.userId],
+                };
+              }
             }
-          }
-          return msg;
-        });
+            return msg;
+          });
 
-        return {
-          ...prev,
-          [data.chatId]: {
-            ...detail,
-            messages: updated,
-          },
-        };
-      });
-    });
+          return {
+            ...prev,
+            [data.chatId]: {
+              ...detail,
+              messages: updated,
+            },
+          };
+        });
+      }
+    );
 
     return () => {
       disconnectSocket();
     };
-  }, [user, selectedChatId, chatDetails, sortChatsByLatest]);
+  }, [user, selectedChatId, chatDetails, sortChatsByLatest, fetchAll]);
 
   // 2️⃣ join / leave rooms when selection changes
   useEffect(() => {
@@ -211,9 +248,7 @@ export default function Home() {
     sendMessage(chatId, text);
 
     // bump this chat to the top immediately
-    setChatsList(prev =>
-      sortChatsByLatest(prev, chatDetails)
-    );
+    setChatsList((prev) => sortChatsByLatest(prev, chatDetails));
   }
 
   return (

@@ -30,6 +30,22 @@ export function connectSocket(token, userId) {
   }
 }
 
+export function sendRefresh(chatId) {
+  if (socket) {
+    console.log("📣 emitting refresh for chat", chatId);
+    socket.emit("force_refresh", { chatId });
+  }
+}
+
+export function onRefresh(cb) {
+  if (socket) {
+    socket.on("force_refresh", () => {
+      console.log("🔄 got refresh event");
+      cb();
+    });
+  }
+}
+
 export function onConnect(cb) {
   socket?.on("connect", cb);
 }

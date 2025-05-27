@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { UserData, chats, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
+import { sendRefresh } from "@/lib/socket";
 
 interface CreateGroupDialogProps {
   onChatCreated?: () => void;
@@ -92,6 +93,9 @@ export function CreateGroupDialog({ onChatCreated }: CreateGroupDialogProps) {
     try {
       const data = await chats.createChat("group", groupName, selectedFriends);
       console.log("Created group chat:", data);
+
+      sendRefresh(data.chat.chatId);
+      console.log(data.chat.chatId);
       
       // Close the dialog on success
       setOpen(false);

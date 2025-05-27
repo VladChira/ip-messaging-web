@@ -429,7 +429,7 @@ export const chats = {
     chatType: string,
     name: string,
     memberIds: number[]
-  ): Promise<{ message: string }> => {
+  ): Promise<{ chat: Chat, message: string }> => {
     return api.post("/create-chat", { chatType: chatType, name: name, memberIds: memberIds });
   },
 };
