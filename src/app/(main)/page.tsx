@@ -59,6 +59,7 @@ export default function Home() {
     try {
       // -- Fetch chats using API function --
       const { chats: fetchedChats } = await chats.getChats();
+      console.log(fetchedChats)
       setChatsList(fetchedChats);
 
       // -- For each chat, fetch messages, members, and chatMembers in parallel --

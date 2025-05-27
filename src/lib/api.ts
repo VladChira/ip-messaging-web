@@ -358,7 +358,7 @@ export const friends = {
     accepterId: number
   ): Promise<{ message: string }> => {
     return api.post("/accept-friend-request", {
-      request_id: requestId,
+      requestId: requestId,
       accepterId: accepterId,
     });
   },
@@ -371,7 +371,7 @@ export const friends = {
     rejecterId: number
   ): Promise<{ message: string }> => {
     return api.post("/reject-friend-request", {
-      request_id: requestId,
+      requestId: requestId,
       rejecterId: rejecterId,
     });
   },
