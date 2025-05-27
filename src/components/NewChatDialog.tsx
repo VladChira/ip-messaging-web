@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import { UserData, friends, getCurrentUser } from "@/lib/api";
+import { UserData, chats, friends, getCurrentUser } from "@/lib/api";
 import { ChatAppUser } from "@/lib/constants";
 
 export function NewChatDialog() {
@@ -45,10 +45,16 @@ export function NewChatDialog() {
     fetchUsers();
   }, [user?.userId]);
 
-  const handleStartChat = (userId: number) => {
+  const handleStartChat = async (userId: number) => {
     console.log(`Starting chat with user ID: ${userId}`);
-    // Here you would start a new chat with the selected user
-    // For now, we'll just close the dialog
+    
+    try {
+      const data = await chats.createChat("one_on_one", "test-one", [userId]);
+      console.log("Created one on one chat:", data);
+    } catch(err) {
+      console.log("Failed to create one on one chat", err);
+    }
+
     setOpen(false);
   };
 

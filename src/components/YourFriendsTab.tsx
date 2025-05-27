@@ -98,6 +98,7 @@ const YourFriendsTab = () => {
             name={friendUser.name}
             username={friendUser.username}
             avatarUrl="/tbd"
+            friendId={friendUser.userId}
           />
           {index !== friends.length - 1 && <Separator className="my-3" />}
         </div>
