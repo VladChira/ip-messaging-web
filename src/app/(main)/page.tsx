@@ -178,19 +178,20 @@ export default function Home() {
         })
       );
 
-      // ▶️ subscribe to refresh
-      onRefresh(() => {
-        // you'll already have fetchAll() in scope
-        console.log("refetching all chats & messages…");
-        fetchAll();
-      });
-
       // if this message is in the chat the user currently has open, tell server it’s read
       if (msg.chatId === selectedChatId) {
         console.log("sending a mark as read");
         sendMarkAsRead(msg.chatId, msg.messageId);
       }
     });
+
+    // ▶️ subscribe to refresh
+    onRefresh(() => {
+      // you'll already have fetchAll() in scope
+      console.log("refetching all chats & messages…");
+      fetchAll();
+    });
+
     onTyping((data: any) => {
       /* console.log already in socket.js */
     });

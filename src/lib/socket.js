@@ -39,8 +39,8 @@ export function sendRefresh(chatId) {
 
 export function onRefresh(cb) {
   if (socket) {
-    socket.on("force_refresh", () => {
-      console.log("🔄 got refresh event");
+    socket.on("force_refresh", (chatId) => {
+      console.log(`🔄 got refresh event for ${chatId}`);
       cb();
     });
   }
