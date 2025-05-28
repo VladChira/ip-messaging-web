@@ -214,9 +214,6 @@ export default function Home() {
       fetchAll();
     });
 
-    onTyping((data: any) => {
-      /* console.log already in socket.js */
-    });
     onPresence((data: any) => {
       /* console.log already in socket.js */
     });
@@ -390,6 +387,7 @@ export default function Home() {
               chat={chatsList.find((c) => c.chatId === selectedChatId)!}
               detail={chatDetails[selectedChatId]!}
               onSendMessage={handleSendMessage}
+              isSocketConnected={isSocketConnected}
             />
           </>
         )}

@@ -28,6 +28,7 @@ interface CurrentChatPanelProps {
   detail: ChatDetail;
   /** Called when user sends a new message */
   onSendMessage: (chatId: string, text: string) => void;
+  isSocketConnected: boolean;
 }
 
 export function CurrentChatPanel({
@@ -35,6 +36,7 @@ export function CurrentChatPanel({
   chat,
   detail,
   onSendMessage,
+  isSocketConnected
 }: CurrentChatPanelProps) {
   const [inputText, setInputText] = useState("");
 
@@ -70,16 +72,19 @@ export function CurrentChatPanel({
         sendStoppedTyping(chat.chatId);
       }
     };
-  }, [chat.chatId]);
+  }, [isSocketConnected, chat.chatId]);
 
   // 3️⃣ subscribe to “typing” events for this chat
   useEffect(() => {
+    if (!isSocketConnected) return;
     const handleTyping = (data: {
       chatId: string;
       userId: number;
       typing: boolean;
     }) => {
+      console.log('setting typing users');
       if (data.chatId !== chat.chatId) return;
+      
       setTypingUsers((prev) => {
         const next = new Set(prev);
         if (data.typing) next.add(data.userId);
