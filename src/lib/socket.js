@@ -93,6 +93,16 @@ export function onTyping(cb) {
   }
 }
 
+export function sendStartedTyping(chatId) {
+  if (!socket) return;
+  socket.emit("started_typing", { chatId });
+}
+
+export function sendStoppedTyping(chatId) {
+  if (!socket) return;
+  socket.emit("stopped_typing", { chatId });
+}
+
 export function onPresence(cb) {
   if (socket) {
     socket.on("presence_update", (data) => {

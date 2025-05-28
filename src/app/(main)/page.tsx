@@ -188,6 +188,23 @@ export default function Home() {
         console.log("sending a mark as read");
         sendMarkAsRead(msg.chatId, msg.messageId);
       }
+
+      // Now update unreadCounts:
+      setChatsList((prev) => {
+        console.log('jere');
+        return prev
+          .map((chat) => {
+            if (chat.chatId !== msg.chatId) return chat;
+
+            // if this chat is open, zero out; otherwise increment (but not for your own messages)
+            const isOpen = chat.chatId === selectedChatId;
+            const didSendIt = msg.senderId === user.userId;
+            const delta = didSendIt ? 0 : 1;
+            const newCount = isOpen ? 0 : (chat.unreadCount || 0) + delta;
+
+            return { ...chat, unreadCount: newCount };
+          })
+      });
     });
 
     // ▶️ subscribe to refresh
@@ -242,6 +259,15 @@ export default function Home() {
   // 1️⃣ JOIN / LEAVE: only depends on selectedChatId
   useEffect(() => {
     if (!selectedChatId) return;
+
+
+    setChatsList((prev) =>
+      prev.map((chat) =>
+        chat.chatId === selectedChatId
+          ? { ...chat, unreadCount: 0 }
+          : chat
+      )
+    );
 
     joinChat(selectedChatId);
     return () => {

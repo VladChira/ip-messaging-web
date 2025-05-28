@@ -18,6 +18,7 @@ export interface Chat {
   name: string;
   chatType: string;
   createdAt: string;
+  unreadCount: number;
 }
 
 export interface Message {

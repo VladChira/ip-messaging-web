@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, useRef, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
 
 import { Chat, UserData, Message, ChatMember } from "@/lib/api";
 import { getInitials } from "@/lib/constants";
+import { onTyping, sendStartedTyping, sendStoppedTyping } from "@/lib/socket";
 
 interface ChatDetail {
   members: UserData[];
@@ -36,6 +37,62 @@ export function CurrentChatPanel({
   onSendMessage,
 }: CurrentChatPanelProps) {
   const [inputText, setInputText] = useState("");
+
+  // track which users are typing in this chat
+  const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set());
+
+  // debounce timer for “stopped_typing”
+  const stopTypingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isTypingSent = useRef(false);
+
+  // 1️⃣ when input changes, tell server “I started typing”
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+    if (!isTypingSent.current) {
+      sendStartedTyping(chat.chatId);
+      console.log('sent start type');
+      isTypingSent.current = true;
+    }
+    // reset our “stopped_typing” timer
+    if (stopTypingTimeout.current) clearTimeout(stopTypingTimeout.current);
+    stopTypingTimeout.current = setTimeout(() => {
+      sendStoppedTyping(chat.chatId);
+      console.log('sent stop type');
+      isTypingSent.current = false;
+    }, 2000);
+  };
+
+  // 2️⃣ when component unmounts, clean up
+  useEffect(() => {
+    return () => {
+      if (stopTypingTimeout.current) clearTimeout(stopTypingTimeout.current);
+      if (isTypingSent.current) {
+        sendStoppedTyping(chat.chatId);
+      }
+    };
+  }, [chat.chatId]);
+
+  // 3️⃣ subscribe to “typing” events for this chat
+  useEffect(() => {
+    const handleTyping = (data: {
+      chatId: string;
+      userId: number;
+      typing: boolean;
+    }) => {
+      if (data.chatId !== chat.chatId) return;
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        if (data.typing) next.add(data.userId);
+        else next.delete(data.userId);
+        return next;
+      });
+    };
+
+    onTyping(handleTyping);
+    // if you have an offTyping, unsubscribe on cleanup:
+    // return () => offTyping(handleTyping);
+  }, [chat.chatId]);
+
 
   // Determine display name
   const displayName =
@@ -153,6 +210,26 @@ export function CurrentChatPanel({
               </ChatBubble>
             );
           })}
+
+          {Array.from(typingUsers)
+            .filter((uid) => String(uid) !== String(user?.userId))
+            .map((uid) => {
+              console.log("uid below");
+              console.log(uid);
+              console.log('member below')
+              
+              const member = detail.members.find((m) => m.userId == uid);
+              console.log(member)
+              const initials = member
+                ? getInitials(member.name || member.username || "")
+                : "?";
+              return (
+                <ChatBubble key={`typing-${uid}`} variant="received">
+                  <ChatBubbleAvatar fallback={initials} />
+                  <ChatBubbleMessage isLoading />
+                </ChatBubble>
+              );
+            })}
         </ChatMessageList>
       </div>
 
@@ -168,7 +245,7 @@ export function CurrentChatPanel({
           placeholder="Type your message..."
           className="flex-1 h-15"
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
         />
         <Button size="icon" variant="outline" onClick={handleSend}>

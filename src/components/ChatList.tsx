@@ -1,9 +1,11 @@
 "use client";
 
-import { Chat, UserData, ChatDetail } from "@/lib/api";
+import { Chat, UserData, ChatDetail, ChatMember, Message, chats } from "@/lib/api";
 import { ChatListItem } from "./ChatListItem";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
+import { useEffect, useRef, useState } from "react";
+import { onMarkAsRead, onMessage } from "@/lib/socket";
 
 interface ChatListProps {
   user: UserData | null;
@@ -15,22 +17,30 @@ interface ChatListProps {
 
 export default function ChatList({
   user,
-  chats,
+  chats: myChats,
   chatDetails,
   selectedChatId,
   onSelectChat,
 }: ChatListProps) {
- 
+
+  function isMessageRead(message: Message, chatMembers: ChatMember[], currentUserId: number) {
+    // Build a list of the *other* member IDs
+    const recipientIds = chatMembers
+      .map((m) => m.userId)
+    // Check that each recipient has been added to seenBy
+    return recipientIds.every((id) => message.seenBy.includes(id));
+  }
+
   return (
     <ScrollArea className="flex-1 rounded-md border p-2">
-      {chats.map((chat, idx) => {
+      {myChats.map((chat, idx) => {
         const detail = chatDetails[chat.chatId] || {
           members: [],
           messages: [],
           chatMembers: [],
         };
         const { members, messages } = detail;
-        
+
         // Sort messages to get the actual latest message
         const sortedMessages = [...messages].sort(
           (a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime()
@@ -48,16 +58,16 @@ export default function ChatList({
         }
 
         const isSelected = chat.chatId === selectedChatId;
-        
+
         // Check if the latest message was sent by the current user (FIX: Convert to strings)
         const isLastMessageByCurrentUser = Boolean(
           latest && user && String(latest.senderId) === String(user.userId)
         );
-        
+
         // Get the read status from the latest message (if it exists and was sent by current user)
-        // const isLastMessageRead = isLastMessageByCurrentUser && latest 
-        //   ? isMessageRead(latest, sortedMessages, chatMembers, user?.userId || 0)
-        //   : false;
+        const isLastMessageRead = isLastMessageByCurrentUser && latest
+          ? isMessageRead(latest, detail.chatMembers, user?.userId || 0)
+          : false;
 
         // Get the sender name for group chats (only if not sent by current user)
         let lastMessageSenderName = "";
@@ -69,9 +79,8 @@ export default function ChatList({
         return (
           <div key={chat.chatId}>
             <div
-              className={`py-2 rounded-md cursor-pointer ${
-                isSelected ? "bg-accent" : "hover:bg-muted"
-              }`}
+              className={`py-2 rounded-md cursor-pointer ${isSelected ? "bg-accent" : "hover:bg-muted"
+                }`}
               onClick={() => onSelectChat(chat.chatId)}
             >
               <ChatListItem
@@ -81,14 +90,14 @@ export default function ChatList({
                 lastMessageTime={
                   latest ? new Date(latest.sentAt).toLocaleTimeString() : ""
                 }
-                unreadCount={0} // You can implement this using chat.unreadCount if available
-                isRead={false}
+                unreadCount={chat.unreadCount}
+                isRead={isLastMessageRead}
                 isLastMessageByCurrentUser={isLastMessageByCurrentUser}
                 lastMessageSenderName={lastMessageSenderName}
                 isGroupChat={chat.chatType === "group"}
               />
             </div>
-            {idx !== chats.length - 1 && <Separator />}
+            {idx !== myChats.length - 1 && <Separator />}
           </div>
         );
       })}
