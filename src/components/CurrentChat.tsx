@@ -72,7 +72,7 @@ export function CurrentChatPanel({
         sendStoppedTyping(chat.chatId);
       }
     };
-  }, [isSocketConnected, chat.chatId]);
+  }, [chat.chatId]);
 
   // 3️⃣ subscribe to “typing” events for this chat
   useEffect(() => {
@@ -82,13 +82,13 @@ export function CurrentChatPanel({
       userId: number;
       typing: boolean;
     }) => {
-      console.log('setting typing users');
-      if (data.chatId !== chat.chatId) return;
+      if (data.chatId != chat.chatId) return;
       
       setTypingUsers((prev) => {
         const next = new Set(prev);
         if (data.typing) next.add(data.userId);
         else next.delete(data.userId);
+        console.log(next);
         return next;
       });
     };
@@ -96,7 +96,7 @@ export function CurrentChatPanel({
     onTyping(handleTyping);
     // if you have an offTyping, unsubscribe on cleanup:
     // return () => offTyping(handleTyping);
-  }, [chat.chatId]);
+  }, [chat.chatId, isSocketConnected]);
 
 
   // Determine display name
@@ -217,13 +217,13 @@ export function CurrentChatPanel({
           })}
 
           {Array.from(typingUsers)
-            .filter((uid) => String(uid) !== String(user?.userId))
+            // .filter((uid) => String(uid) != String(user?.userId))
             .map((uid) => {
               console.log("uid below");
               console.log(uid);
               console.log('member below')
               
-              const member = detail.members.find((m) => m.userId == uid);
+              const member = detail.members.find((m) => String(m.userId) == String(uid));
               console.log(member)
               const initials = member
                 ? getInitials(member.name || member.username || "")
