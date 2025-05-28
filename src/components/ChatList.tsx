@@ -1,11 +1,9 @@
 "use client";
 
-import { Chat, UserData, ChatDetail, ChatMember, Message, chats } from "@/lib/api";
+import { Chat, UserData, ChatDetail, ChatMember, Message } from "@/lib/api";
 import { ChatListItem } from "./ChatListItem";
 import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "./ui/separator";
-import { useEffect, useRef, useState } from "react";
-import { onMarkAsRead, onMessage } from "@/lib/socket";
 
 interface ChatListProps {
   user: UserData | null;
@@ -23,7 +21,7 @@ export default function ChatList({
   onSelectChat,
 }: ChatListProps) {
 
-  function isMessageRead(message: Message, chatMembers: ChatMember[], currentUserId: number) {
+  function isMessageRead(message: Message, chatMembers: ChatMember[]) {
     // Build a list of the *other* member IDs
     const recipientIds = chatMembers
       .map((m) => m.userId)
@@ -66,7 +64,7 @@ export default function ChatList({
 
         // Get the read status from the latest message (if it exists and was sent by current user)
         const isLastMessageRead = isLastMessageByCurrentUser && latest
-          ? isMessageRead(latest, detail.chatMembers, user?.userId || 0)
+          ? isMessageRead(latest, detail.chatMembers)
           : false;
 
         // Get the sender name for group chats (only if not sent by current user)
